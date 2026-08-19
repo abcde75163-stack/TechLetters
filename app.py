@@ -401,6 +401,38 @@ def call_openai_pdf_json(prompt, file_obj, max_output_tokens=2500):
     return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
 
 
+def render_pdf_pages_as_images(file_obj, max_pages=2, zoom=1.8):
+    import fitz
+
+    doc = fitz.open(stream=file_obj.getvalue(), filetype="pdf")
+    image_urls = []
+    try:
+        for page_idx in range(min(doc.page_count, max_pages)):
+            page = doc.load_page(page_idx)
+            pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+            image_bytes = pix.tobytes("png")
+            data_url = "data:image/png;base64," + base64.b64encode(image_bytes).decode("utf-8")
+            image_urls.append(data_url)
+    finally:
+        doc.close()
+    return image_urls
+
+
+def call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500):
+    image_urls = render_pdf_pages_as_images(file_obj)
+    if not image_urls:
+        raise ValueError("PDF 페이지 이미지를 생성하지 못했습니다.")
+
+    content = [{"type": "input_text", "text": prompt}]
+    for image_url in image_urls:
+        content.append({
+            "type": "input_image",
+            "image_url": image_url,
+            "detail": "high",
+        })
+    return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
+
+
 def is_capacity_error(error):
     message = str(error).lower()
     return "capacity" in message or "overloaded" in message or "temporarily unavailable" in message
@@ -458,12 +490,12 @@ def analyze_pdf_document(file_obj, test_mode=False):
         }
  
     pdf_text = extract_pdf_text(file_obj)
-    use_direct_pdf_analysis = not is_pdf_text_usable(pdf_text)
-    if use_direct_pdf_analysis:
+    use_visual_pdf_analysis = not is_pdf_text_usable(pdf_text)
+    if use_visual_pdf_analysis:
         pdf_text = (
             "PDF 텍스트 레이어 추출이 충분하지 않습니다. "
-            "첨부된 PDF 파일 자체를 직접 읽고, 보이는 내용을 기준으로 분석하세요. "
-            "본문이 이미지형 SMK라면 화면에 보이는 제목, 기술개요, 장점, 적용분야를 최대한 활용하세요."
+            "첨부된 PDF 페이지 이미지를 직접 읽고, 보이는 내용을 기준으로 분석하세요. "
+            "이미지형 SMK의 제목, 기술개요, 장점, 적용분야를 최대한 활용하세요."
         )
     
     prompt = f"""
@@ -503,8 +535,8 @@ def analyze_pdf_document(file_obj, test_mode=False):
     """
 
     try:
-        if use_direct_pdf_analysis:
-            parsed = call_openai_pdf_json(prompt, file_obj, max_output_tokens=2500)
+        if use_visual_pdf_analysis:
+            parsed = call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500)
         else:
             parsed = call_openai_json(prompt, max_output_tokens=2500)
         if isinstance(parsed, list):
@@ -523,8 +555,8 @@ def analyze_pdf_document(file_obj, test_mode=False):
             "에너지자원", "원자력", "환경", "건설교통", "기계조선", "재료전자", "공정재료"
         ]:
             parsed["category"] = "기타"
-        if use_direct_pdf_analysis:
-            parsed["analysis_status"] = "direct_pdf_analysis"
+        if use_visual_pdf_analysis:
+            parsed["analysis_status"] = "visual_pdf_analysis"
         return parsed
     except Exception as e:
         fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
@@ -727,10 +759,10 @@ def main():
  
                 data = analyze_pdf_document(uploaded_file, test_mode=effective_test_mode)
                 data['patent_id'] = patent_id
-                if data.get("analysis_status") == "direct_pdf_analysis":
+                if data.get("analysis_status") == "visual_pdf_analysis":
                     st.info(
                         f"{uploaded_file.name}: PDF 텍스트 레이어가 부족해 "
-                        "OpenAI PDF 직접 분석으로 처리했습니다."
+                        "PDF 페이지 이미지 분석으로 처리했습니다."
                     )
                 if data.get("analysis_status") == "text_extraction_failed":
                     st.warning(
