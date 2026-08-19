@@ -1,0 +1,7 @@
+openai>=1.99.0
+jinja2
+streamlit
+requests
+pymupdf>=1.24.0
+gspread>=6.1.0
+google-auth>=2.29.0
