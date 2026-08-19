@@ -367,7 +367,7 @@ def analyze_pdf_document(file_obj, test_mode=False):
     아래 특허 기술요약서(SMK) PDF 추출 텍스트를 분석하여 JSON 형식으로만 응답하세요. 다른 설명 없이 JSON 객체 하나만 출력하세요.
 
     반드시 아래 JSON 스키마와 자료형을 정확히 지키세요:
-    {
+    {{
       "title": "문자열 (기술 명칭, 15자 내외)",
       "problem": "기업 관점에서 이 기술이 해결하는 문제 1문장",
       "business_value": "도입 기업이 얻을 수 있는 사업적 이점 1문장",
@@ -375,7 +375,7 @@ def analyze_pdf_document(file_obj, test_mode=False):
       "summary": ["문제: ...", "이점: ...", "활용: ..."],
       "target_industries": ["산업태그1", "산업태그2", "산업태그3"],
       "category": "문자열"
-    }
+    }}
 
     - title: 기술 명칭 (간결하게, 15자 내외 권장)
     - problem/business_value/applications: 기술 설명이 아니라 기업 담당자가 읽고 판단하기 쉬운 비즈니스 언어로 작성하세요.
