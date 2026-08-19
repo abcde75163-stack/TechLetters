@@ -837,7 +837,6 @@ def main():
     if handle_tracking_request():
         return
 
-    st.title("🚀 PNUTH 뉴스레터 자동 생성기")
     st.title(f"🚀 PNUTH 뉴스레터 자동 생성기 [{APP_VERSION}]")
     st.caption(f"현재 실행 중인 앱 버전: {APP_VERSION}")
     st.info("PDF와 이미지 파일을 함께 업로드하세요. (파일명 번호 일치 필수)")
