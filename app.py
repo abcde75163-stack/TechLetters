@@ -427,12 +427,17 @@ def call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500):
         raise ValueError("PDF 페이지 이미지를 생성하지 못했습니다.")
 
     client = OpenAI(api_key=OPENAI_API_KEY)
+    content = [{"type": "input_text", "text": prompt}]
     content = [{"type": "text", "text": prompt}]
     for image_url in image_urls:
         content.append({
+            "type": "input_image",
+            "image_url": image_url,
+            "detail": "high",
             "type": "image_url",
             "image_url": {"url": image_url, "detail": "high"},
         })
+    return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
 
     response = client.chat.completions.create(
         model=VISION_MODEL_ID,
@@ -587,6 +592,7 @@ def analyze_pdf_document(file_obj, test_mode=False):
         return parsed
     except Exception as e:
         fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
+        fallback["summary"][0] = f"문제: AI 상세요약 실패({str(e)[:24]})"
         fallback["summary"][0] = "문제: AI 상세요약 실패로 원문 확인이 필요합니다."
         fallback["analysis_error"] = safe_error_message(e)
         return fallback
@@ -814,6 +820,28 @@ def main():
                 progress_bar.progress((idx + 1) / len(pdf_files))
  
             status_text.success("🎉 생성 완료!")
+ 
+            status_text.success("🎉 생성 완료!")
+
+            diagnostics = []
+            for patent in patent_list:
+                status = patent.get("analysis_status", "text_analysis")
+                if status == "text_analysis":
+                    label = "텍스트 분석 성공"
+                elif status == "visual_pdf_analysis":
+                    label = "PDF 이미지 분석 성공"
+                elif status == "text_extraction_failed":
+                    label = "분석 실패"
+                else:
+                    label = status
+                diagnostics.append({
+                    "파일/기술번호": patent.get("patent_id", ""),
+                    "분석상태": label,
+                    "제목": patent.get("title", ""),
+                    "오류": patent.get("analysis_error", ""),
+                })
+            st.subheader("분석 진단 결과")
+            st.dataframe(diagnostics, use_container_width=True)
  
             grouped_patents = group_patents_by_category(patent_list)
             now = datetime.datetime.now()
