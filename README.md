@@ -19,7 +19,7 @@ CLICK_LOG_PATH = "logs/click_logs.csv"
 - `OPENAI_API_KEY`가 없으면 테스트/MOCK 모드로 동작합니다.
 - `GITHUB_TOKEN`, `GITHUB_REPO`가 없으면 PDF/이미지 외부 링크 업로드는 비활성화됩니다.
 - PDF는 PyMuPDF로 텍스트를 추출한 뒤 OpenAI API로 뉴스레터용 제목/요약/분야를 생성합니다.
-- 스캔형/이미지형 PDF처럼 텍스트 레이어가 부족한 경우에는 같은 기술번호의 PNG/JPG가 있으면 해당 이미지를 `OPENAI_VISION_MODEL`로 먼저 분석합니다.
+- 같은 기술번호의 PNG/JPG가 있으면 해당 이미지를 `OPENAI_VISION_MODEL`로 먼저 분석합니다.
 - 같은 기술번호 이미지가 없을 때는 PDF 페이지를 이미지로 변환한 뒤 `OPENAI_VISION_MODEL`로 다시 분석합니다.
 - AI는 `문제`, `기업 이점`, `활용 분야`, `적용산업 태그` 중심으로 요약합니다.
 - 생성된 링크에는 `utm_source=newsletter`, `utm_campaign`, `tech_id` 등이 자동으로 붙어 관심 기술 추적에 활용할 수 있습니다.
