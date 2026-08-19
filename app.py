@@ -328,6 +328,10 @@ def response_text(response):
 
 
 def call_openai_json(prompt, max_output_tokens=2500):
+    return call_openai_json_with_content(prompt, max_output_tokens=max_output_tokens)
+
+
+def call_openai_json_with_content(content, max_output_tokens=2500):
     from openai import (
         APIConnectionError,
         APIError,
@@ -343,13 +347,16 @@ def call_openai_json(prompt, max_output_tokens=2500):
 
     for attempt in range(4):
         try:
+            user_content = content
+            if isinstance(content, str):
+                user_content = content
             response = client.responses.create(
                 model=model,
                 instructions=(
                     "너는 부산대학교 기술사업화 뉴스레터용 특허 기술요약 전문가다. "
                     "반드시 유효한 JSON 객체만 출력한다."
                 ),
-                input=[{"role": "user", "content": prompt}],
+                input=[{"role": "user", "content": user_content}],
                 text={"format": {"type": "json_object"}},
                 max_output_tokens=max_output_tokens,
             )
@@ -377,6 +384,21 @@ def call_openai_json(prompt, max_output_tokens=2500):
             time.sleep(wait)
 
     raise RuntimeError("OpenAI API 호출에 실패했습니다.")
+
+
+def call_openai_pdf_json(prompt, file_obj, max_output_tokens=2500):
+    file_name = os.path.basename(getattr(file_obj, "name", "smk.pdf")) or "smk.pdf"
+    file_bytes = file_obj.getvalue()
+    file_data = "data:application/pdf;base64," + base64.b64encode(file_bytes).decode("utf-8")
+    content = [
+        {"type": "input_text", "text": prompt},
+        {
+            "type": "input_file",
+            "filename": file_name,
+            "file_data": file_data,
+        },
+    ]
+    return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
 
 
 def is_capacity_error(error):
@@ -436,9 +458,14 @@ def analyze_pdf_document(file_obj, test_mode=False):
         }
  
     pdf_text = extract_pdf_text(file_obj)
-    if not is_pdf_text_usable(pdf_text):
-        return fallback_summary_from_pdf_text(file_obj, pdf_text)
-
+    use_direct_pdf_analysis = not is_pdf_text_usable(pdf_text)
+    if use_direct_pdf_analysis:
+        pdf_text = (
+            "PDF 텍스트 레이어 추출이 충분하지 않습니다. "
+            "첨부된 PDF 파일 자체를 직접 읽고, 보이는 내용을 기준으로 분석하세요. "
+            "본문이 이미지형 SMK라면 화면에 보이는 제목, 기술개요, 장점, 적용분야를 최대한 활용하세요."
+        )
+    
     prompt = f"""
     아래 특허 기술요약서(SMK) PDF 추출 텍스트를 분석하여 JSON 형식으로만 응답하세요. 다른 설명 없이 JSON 객체 하나만 출력하세요.
 
@@ -476,7 +503,10 @@ def analyze_pdf_document(file_obj, test_mode=False):
     """
 
     try:
-        parsed = call_openai_json(prompt, max_output_tokens=2500)
+        if use_direct_pdf_analysis:
+            parsed = call_openai_pdf_json(prompt, file_obj, max_output_tokens=2500)
+        else:
+            parsed = call_openai_json(prompt, max_output_tokens=2500)
         if isinstance(parsed, list):
             parsed = parsed[0] if parsed and isinstance(parsed[0], dict) else {}
         if not isinstance(parsed, dict):
@@ -493,6 +523,8 @@ def analyze_pdf_document(file_obj, test_mode=False):
             "에너지자원", "원자력", "환경", "건설교통", "기계조선", "재료전자", "공정재료"
         ]:
             parsed["category"] = "기타"
+        if use_direct_pdf_analysis:
+            parsed["analysis_status"] = "direct_pdf_analysis"
         return parsed
     except Exception as e:
         fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
@@ -695,6 +727,11 @@ def main():
  
                 data = analyze_pdf_document(uploaded_file, test_mode=effective_test_mode)
                 data['patent_id'] = patent_id
+                if data.get("analysis_status") == "direct_pdf_analysis":
+                    st.info(
+                        f"{uploaded_file.name}: PDF 텍스트 레이어가 부족해 "
+                        "OpenAI PDF 직접 분석으로 처리했습니다."
+                    )
                 if data.get("analysis_status") == "text_extraction_failed":
                     st.warning(
                         f"{uploaded_file.name}: PDF 원문 텍스트를 충분히 읽지 못해 "
