@@ -277,6 +277,21 @@ def extract_pdf_text(file_obj, max_chars=12000):
         return f"PDF 텍스트 추출 실패: {e}"
 
 
+BAD_PDF_TEXT_MARKERS = (
+    "PDF에서 텍스트를 추출하지 못했습니다",
+    "PDF 텍스트 추출 실패",
+)
+
+
+def is_pdf_text_usable(pdf_text, min_chars=120):
+    if not pdf_text:
+        return False
+    if any(marker in pdf_text for marker in BAD_PDF_TEXT_MARKERS):
+        return False
+    meaningful_chars = re.findall(r"[A-Za-z0-9가-힣]", pdf_text)
+    return len(meaningful_chars) >= min_chars
+
+
 def extract_json(raw_text):
     raw = raw_text.strip()
     if not raw:
@@ -370,7 +385,9 @@ def is_capacity_error(error):
 
 
 def fallback_summary_from_pdf_text(file_obj, pdf_text):
-    name = os.path.splitext(getattr(file_obj, "name", "기술요약서"))[0]
+    raw_name = os.path.basename(getattr(file_obj, "name", "기술요약서"))
+    name = os.path.splitext(raw_name)[0]
+    name = re.sub(r"[_-]+", " ", name).strip() or "기술요약서"
     clean_lines = [
         re.sub(r"\s+", " ", line).strip()
         for line in (pdf_text or "").splitlines()
@@ -388,16 +405,17 @@ def fallback_summary_from_pdf_text(file_obj, pdf_text):
 
     return {
         "title": title[:40],
-        "problem": "업로드된 SMK 내용을 바탕으로 기업 적용 가능성을 검토할 수 있습니다.",
-        "business_value": "세부 기술효과와 사업화 포인트는 SMK 확인 후 상담에서 구체화할 수 있습니다.",
-        "applications": joined[:90],
+        "problem": "원문 텍스트 인식이 어려워 SMK 확인 후 기업 적용성을 검토해야 합니다.",
+        "business_value": "기술 상담 단계에서 상세 효과와 사업화 포인트를 구체화할 수 있습니다.",
+        "applications": "적용 산업과 활용 제품은 원문 확인 후 상담에서 구체화합니다.",
         "summary": [
-            "문제: 관련 기업의 기술 개선 수요 검토에 활용할 수 있습니다.",
-            "이점: SMK를 통해 차별성과 적용 가능성을 빠르게 확인할 수 있습니다.",
-            f"활용: {joined[:55]}",
+            "문제: 원문 인식 후 기업 수요를 검토합니다.",
+            "이점: 상담을 통해 기술효과를 구체화합니다.",
+            "활용: 적용 산업은 SMK 확인 후 제안합니다.",
         ],
-        "target_industries": ["적용산업 확인필요"],
+        "target_industries": ["SMK확인필요"],
         "category": "기타",
+        "analysis_status": "text_extraction_failed",
     }
 
  
@@ -418,6 +436,9 @@ def analyze_pdf_document(file_obj, test_mode=False):
         }
  
     pdf_text = extract_pdf_text(file_obj)
+    if not is_pdf_text_usable(pdf_text):
+        return fallback_summary_from_pdf_text(file_obj, pdf_text)
+
     prompt = f"""
     아래 특허 기술요약서(SMK) PDF 추출 텍스트를 분석하여 JSON 형식으로만 응답하세요. 다른 설명 없이 JSON 객체 하나만 출력하세요.
 
@@ -674,6 +695,11 @@ def main():
  
                 data = analyze_pdf_document(uploaded_file, test_mode=effective_test_mode)
                 data['patent_id'] = patent_id
+                if data.get("analysis_status") == "text_extraction_failed":
+                    st.warning(
+                        f"{uploaded_file.name}: PDF 원문 텍스트를 충분히 읽지 못해 "
+                        "확인 필요 카드로 처리했습니다. 스캔형 PDF라면 OCR 또는 텍스트형 PDF가 필요합니다."
+                    )
  
                 if effective_test_mode:
                     data['image_url'] = "https://via.placeholder.com/200x180?text=Test+Image"
