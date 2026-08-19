@@ -36,6 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
+APP_VERSION = "2026-08-19-png-vision-analysis"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -427,18 +428,58 @@ def call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500):
         raise ValueError("PDF 페이지 이미지를 생성하지 못했습니다.")
 
     client = OpenAI(api_key=OPENAI_API_KEY)
-    content = [{"type": "input_text", "text": prompt}]
     content = [{"type": "text", "text": prompt}]
     for image_url in image_urls:
         content.append({
-            "type": "input_image",
-            "image_url": image_url,
-            "detail": "high",
             "type": "image_url",
             "image_url": {"url": image_url, "detail": "high"},
         })
-    return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
 
+    response = client.chat.completions.create(
+        model=VISION_MODEL_ID,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "너는 부산대학교 기술사업화 뉴스레터용 특허 기술요약 전문가다. "
+                    "반드시 유효한 JSON 객체만 출력한다."
+                ),
+            },
+            {"role": "user", "content": content},
+        ],
+        response_format={"type": "json_object"},
+        max_tokens=max_output_tokens,
+    )
+    raw_text = response.choices[0].message.content or ""
+    return extract_json(raw_text)
+
+
+def image_file_to_data_url(image_file):
+    file_name = os.path.basename(getattr(image_file, "name", "image.png")).lower()
+    content_type = getattr(image_file, "type", "") or ""
+    if not content_type:
+        if file_name.endswith((".jpg", ".jpeg")):
+            content_type = "image/jpeg"
+        else:
+            content_type = "image/png"
+    encoded = base64.b64encode(image_file.getvalue()).decode("utf-8")
+    return f"data:{content_type};base64,{encoded}"
+
+
+def call_openai_uploaded_image_json(prompt, image_file, max_output_tokens=2500):
+    from openai import OpenAI
+
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    content = [
+        {"type": "text", "text": prompt},
+        {
+            "type": "image_url",
+            "image_url": {
+                "url": image_file_to_data_url(image_file),
+                "detail": "high",
+            },
+        },
+    ]
     response = client.chat.completions.create(
         model=VISION_MODEL_ID,
         messages=[
@@ -505,7 +546,7 @@ def fallback_summary_from_pdf_text(file_obj, pdf_text):
     }
 
  
-def analyze_pdf_document(file_obj, test_mode=False):
+def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
     if test_mode or MOCK_MODE:
         return {
             "title": "[테스트] 초고강도 하이브리드 금속-플라스틱 결합 신소재 기술",
@@ -522,7 +563,14 @@ def analyze_pdf_document(file_obj, test_mode=False):
         }
  
     pdf_text = extract_pdf_text(file_obj)
-    use_visual_pdf_analysis = not is_pdf_text_usable(pdf_text)
+    use_uploaded_image_analysis = image_file is not None and not is_pdf_text_usable(pdf_text)
+    use_visual_pdf_analysis = image_file is None and not is_pdf_text_usable(pdf_text)
+    if use_uploaded_image_analysis:
+        pdf_text = (
+            "PDF 텍스트 레이어 추출이 충분하지 않습니다. "
+            "함께 업로드된 같은 기술번호의 PNG/JPG 이미지를 직접 읽고 분석하세요. "
+            "이미지에 보이는 기술명, 기술개요, 장점, 적용분야를 최대한 활용하세요."
+        )
     if use_visual_pdf_analysis:
         pdf_text = (
             "PDF 텍스트 레이어 추출이 충분하지 않습니다. "
@@ -567,7 +615,9 @@ def analyze_pdf_document(file_obj, test_mode=False):
     """
 
     try:
-        if use_visual_pdf_analysis:
+        if use_uploaded_image_analysis:
+            parsed = call_openai_uploaded_image_json(prompt, image_file, max_output_tokens=2500)
+        elif use_visual_pdf_analysis:
             parsed = call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500)
         else:
             parsed = call_openai_json(prompt, max_output_tokens=2500)
@@ -587,12 +637,13 @@ def analyze_pdf_document(file_obj, test_mode=False):
             "에너지자원", "원자력", "환경", "건설교통", "기계조선", "재료전자", "공정재료"
         ]:
             parsed["category"] = "기타"
-        if use_visual_pdf_analysis:
+        if use_uploaded_image_analysis:
+            parsed["analysis_status"] = "uploaded_image_analysis"
+        elif use_visual_pdf_analysis:
             parsed["analysis_status"] = "visual_pdf_analysis"
         return parsed
     except Exception as e:
         fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
-        fallback["summary"][0] = f"문제: AI 상세요약 실패({str(e)[:24]})"
         fallback["summary"][0] = "문제: AI 상세요약 실패로 원문 확인이 필요합니다."
         fallback["analysis_error"] = safe_error_message(e)
         return fallback
@@ -606,7 +657,11 @@ def group_patents_by_category(patent_list):
             grouped[cat] = []
         grouped[cat].append(patent)
     return grouped
- 
+
+
+def upload_key(file_obj):
+    return os.path.splitext(os.path.basename(getattr(file_obj, "name", "")))[0]
+
 # ==========================================
 # 3. 뉴스레터 HTML 템플릿 (Table 구조 - 전 메일 클라이언트 호환)
 # ==========================================
@@ -763,6 +818,7 @@ def main():
         return
 
     st.title("🚀 PNUTH 뉴스레터 자동 생성기")
+    st.caption(f"앱 버전: {APP_VERSION}")
     st.info("PDF와 이미지 파일을 함께 업로드하세요. (파일명 번호 일치 필수)")
     if MOCK_MODE:
         st.warning("OPENAI_API_KEY가 없어 MOCK 모드로 동작합니다. 실제 PDF 분석 대신 테스트 요약이 사용됩니다.")
@@ -778,21 +834,26 @@ def main():
  
     if pdf_files:
         if st.button("뉴스레터 생성 시작"):
-            image_map = {os.path.splitext(img.name)[0]: img for img in (img_files or [])}
+            image_map = {upload_key(img): img for img in (img_files or [])}
             patent_list = []
             status_text = st.empty()
             progress_bar = st.progress(0)
  
             for idx, uploaded_file in enumerate(pdf_files):
-                base_name = uploaded_file.name.split('_')[0]
-                patent_id = os.path.splitext(base_name)[0]
+                patent_id = upload_key(uploaded_file).split('_')[0]
+                matched_image = image_map.get(patent_id)
                 status_text.text(f"⏳ {patent_id} 처리 중... ({idx+1}/{len(pdf_files)})")
  
                 if not effective_test_mode:
                     time.sleep(5)
  
-                data = analyze_pdf_document(uploaded_file, test_mode=effective_test_mode)
+                data = analyze_pdf_document(uploaded_file, image_file=matched_image, test_mode=effective_test_mode)
                 data['patent_id'] = patent_id
+                if data.get("analysis_status") == "uploaded_image_analysis":
+                    st.info(
+                        f"{uploaded_file.name}: PDF 텍스트 레이어가 부족해 "
+                        f"{getattr(matched_image, 'name', '이미지 파일')} 이미지 분석으로 처리했습니다."
+                    )
                 if data.get("analysis_status") == "visual_pdf_analysis":
                     st.info(
                         f"{uploaded_file.name}: PDF 텍스트 레이어가 부족해 "
@@ -810,8 +871,8 @@ def main():
                     data['image_url'] = "https://via.placeholder.com/200x180?text=Test+Image"
                     data['smk_url'] = "#"
                 else:
-                    if patent_id in image_map:
-                        data['image_url'] = upload_file_to_github(image_map[patent_id], patent_id, "images")
+                    if matched_image is not None:
+                        data['image_url'] = upload_file_to_github(matched_image, patent_id, "images")
                     else:
                         data['image_url'] = "https://via.placeholder.com/200x180?text=No+Image"
                     data['smk_url'] = upload_file_to_github(uploaded_file, patent_id, "pdfs")
@@ -820,14 +881,14 @@ def main():
                 progress_bar.progress((idx + 1) / len(pdf_files))
  
             status_text.success("🎉 생성 완료!")
- 
-            status_text.success("🎉 생성 완료!")
 
             diagnostics = []
             for patent in patent_list:
                 status = patent.get("analysis_status", "text_analysis")
                 if status == "text_analysis":
                     label = "텍스트 분석 성공"
+                elif status == "uploaded_image_analysis":
+                    label = "업로드 이미지 분석 성공"
                 elif status == "visual_pdf_analysis":
                     label = "PDF 이미지 분석 성공"
                 elif status == "text_extraction_failed":
