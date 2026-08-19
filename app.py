@@ -36,7 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-19-png-vision-analysis"
+APP_VERSION = "2026-08-19-image-first-diagnostics"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -563,13 +563,15 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
         }
  
     pdf_text = extract_pdf_text(file_obj)
-    use_uploaded_image_analysis = image_file is not None and not is_pdf_text_usable(pdf_text)
-    use_visual_pdf_analysis = image_file is None and not is_pdf_text_usable(pdf_text)
+    has_usable_pdf_text = is_pdf_text_usable(pdf_text)
+    use_uploaded_image_analysis = image_file is not None
+    use_visual_pdf_analysis = image_file is None and not has_usable_pdf_text
     if use_uploaded_image_analysis:
+        pdf_hint = pdf_text[:2000] if has_usable_pdf_text else "PDF 텍스트 레이어 추출이 충분하지 않습니다."
         pdf_text = (
-            "PDF 텍스트 레이어 추출이 충분하지 않습니다. "
             "함께 업로드된 같은 기술번호의 PNG/JPG 이미지를 직접 읽고 분석하세요. "
-            "이미지에 보이는 기술명, 기술개요, 장점, 적용분야를 최대한 활용하세요."
+            "이미지에 보이는 기술명, 기술개요, 장점, 적용분야를 최대한 활용하세요.\n\n"
+            f"참고 PDF 추출 텍스트:\n{pdf_hint}"
         )
     if use_visual_pdf_analysis:
         pdf_text = (
@@ -860,12 +862,11 @@ def main():
                         "PDF 페이지 이미지 분석으로 처리했습니다."
                     )
                 if data.get("analysis_status") == "text_extraction_failed":
+                    error_text = data.get("analysis_error") or "상세 오류가 앱 로그에만 기록되었습니다."
                     st.warning(
-                        f"{uploaded_file.name}: PDF 원문 텍스트를 충분히 읽지 못해 "
-                        "확인 필요 카드로 처리했습니다. 스캔형 PDF라면 OCR 또는 텍스트형 PDF가 필요합니다."
+                        f"{uploaded_file.name}: AI 분석에 실패해 확인 필요 카드로 처리했습니다.\n\n"
+                        f"분석 실패 원인: {error_text}"
                     )
-                    if data.get("analysis_error"):
-                        st.caption(f"분석 실패 원인: {data['analysis_error']}")
  
                 if effective_test_mode:
                     data['image_url'] = "https://via.placeholder.com/200x180?text=Test+Image"
