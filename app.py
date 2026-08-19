@@ -31,6 +31,7 @@ GH_TOKEN = get_secret("GITHUB_TOKEN")
 GH_REPO = get_secret("GITHUB_REPO")
 MODEL_ID = get_secret("OPENAI_MODEL", "gpt-5")
 FALLBACK_MODEL_ID = get_secret("OPENAI_FALLBACK_MODEL", "")
+VISION_MODEL_ID = get_secret("OPENAI_VISION_MODEL", "gpt-4o-mini")
 TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
@@ -419,18 +420,44 @@ def render_pdf_pages_as_images(file_obj, max_pages=2, zoom=1.8):
 
 
 def call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500):
+    from openai import OpenAI
+
     image_urls = render_pdf_pages_as_images(file_obj)
     if not image_urls:
         raise ValueError("PDF 페이지 이미지를 생성하지 못했습니다.")
 
-    content = [{"type": "input_text", "text": prompt}]
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    content = [{"type": "text", "text": prompt}]
     for image_url in image_urls:
         content.append({
-            "type": "input_image",
-            "image_url": image_url,
-            "detail": "high",
+            "type": "image_url",
+            "image_url": {"url": image_url, "detail": "high"},
         })
-    return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
+
+    response = client.chat.completions.create(
+        model=VISION_MODEL_ID,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "너는 부산대학교 기술사업화 뉴스레터용 특허 기술요약 전문가다. "
+                    "반드시 유효한 JSON 객체만 출력한다."
+                ),
+            },
+            {"role": "user", "content": content},
+        ],
+        response_format={"type": "json_object"},
+        max_tokens=max_output_tokens,
+    )
+    raw_text = response.choices[0].message.content or ""
+    return extract_json(raw_text)
+
+
+def safe_error_message(error):
+    message = str(error)
+    message = re.sub(r"sk-[A-Za-z0-9_-]+", "sk-***", message)
+    message = re.sub(r"github_pat_[A-Za-z0-9_]+", "github_pat_***", message)
+    return message[:240]
 
 
 def is_capacity_error(error):
@@ -560,7 +587,8 @@ def analyze_pdf_document(file_obj, test_mode=False):
         return parsed
     except Exception as e:
         fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
-        fallback["summary"][0] = f"문제: AI 상세요약 실패({str(e)[:24]})"
+        fallback["summary"][0] = "문제: AI 상세요약 실패로 원문 확인이 필요합니다."
+        fallback["analysis_error"] = safe_error_message(e)
         return fallback
  
 def group_patents_by_category(patent_list):
@@ -769,6 +797,8 @@ def main():
                         f"{uploaded_file.name}: PDF 원문 텍스트를 충분히 읽지 못해 "
                         "확인 필요 카드로 처리했습니다. 스캔형 PDF라면 OCR 또는 텍스트형 PDF가 필요합니다."
                     )
+                    if data.get("analysis_error"):
+                        st.caption(f"분석 실패 원인: {data['analysis_error']}")
  
                 if effective_test_mode:
                     data['image_url'] = "https://via.placeholder.com/200x180?text=Test+Image"
