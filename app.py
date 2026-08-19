@@ -36,7 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-19-impact-title-cards"
+APP_VERSION = "2026-08-19-compact-rectangle-cards"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -638,9 +638,9 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
         2) "이점: "로 시작. 비용, 품질, 생산성, 안정성, 성능 중 어떤 이점이 있는지
         3) "활용: "로 시작. 적용 가능한 산업/제품/공정
         4) "추천: "으로 시작. 어떤 기업/부서/상황에 먼저 제안하면 좋은지
-      각 문장은 45~70자 내외로 작성하세요. 너무 짧은 홍보 문구가 아니라 기업 담당자가 활용 가능성을 판단할 수 있게 구체적으로 작성하세요.
-      세부 구성요소를 과도하게 나열하는 명세서식 표현(예: 다중관 구조, 파라미터명 등)은 배제하되, 적용 산업·기대효과·활용 장면은 충분히 담으세요.
-      예시: "summary": ["문제: 강판 표면 결함 검사를 자동화해 반복 검사 부담을 줄입니다.", "이점: 육안 검사 대비 속도와 정확도를 높여 품질 편차를 낮춥니다.", "활용: 자동차·조선·금속 가공 공정의 검사 자동화에 적용할 수 있습니다.", "추천: 금속 부품 품질검사 비용을 줄이려는 제조기업에 우선 제안합니다."]
+      각 문장은 32~48자 내외로 작성하세요. 메일 카드 안에서 되도록 한 줄에 가깝게 보이도록 짧고 구체적으로 작성하세요.
+      세부 구성요소를 과도하게 나열하는 명세서식 표현(예: 다중관 구조, 파라미터명 등)은 배제하되, 적용 산업·기대효과·활용 장면은 담으세요.
+      예시: "summary": ["문제: 반복 검사 부담과 품질 편차를 줄입니다.", "이점: 육안 검사 대비 속도와 정확도를 높입니다.", "활용: 자동차·조선·금속 가공 검사에 적용합니다.", "추천: 품질검사 비용을 줄이려는 제조기업에 적합합니다."]
     - target_industries: 기업이 빠르게 판단할 수 있는 적용 산업 태그를 2~4개 작성하세요. 예: 자동차부품, 의료기기, 반도체장비, 스마트팩토리, 이차전지, 조선해양, 식품바이오
     - category: 아래 15개 고정 목록 중에서, 기술의 명칭·요약·적용분야 내용을 근거로 가장 근접한 분야 하나만 추론하여 선택하세요.
       [바이오, 농림수산식품, 보건의료, 기계, 재료, 화공, 전기전자, 정보통신, 에너지자원, 원자력, 환경, 건설교통, 기계조선, 재료전자, 공정재료]
@@ -721,8 +721,9 @@ html_template_str = """<!DOCTYPE html>
     .brand-cell, .title-cell { display: block !important; width: 100% !important; text-align: left !important; }
     .newsletter-title { font-size: 22px !important; padding-top: 8px !important; }
     .hero-title { font-size: 24px !important; line-height: 1.35 !important; }
-    .patent-image-cell, .patent-text-cell { display: block !important; width: 100% !important; border-right: 0 !important; box-sizing: border-box !important; }
-    .patent-image { width: 100% !important; max-width: 380px !important; height: auto !important; }
+    .patent-left-cell, .patent-desc-cell { display: block !important; width: 100% !important; box-sizing: border-box !important; }
+    .patent-desc-cell { padding-left: 0 !important; padding-top: 12px !important; }
+    .patent-image { width: 100% !important; max-width: 360px !important; height: auto !important; }
     .cta-button { width: 100% !important; max-width: 420px !important; box-sizing: border-box !important; }
   }
 </style>
@@ -780,49 +781,54 @@ html_template_str = """<!DOCTYPE html>
  
   <tr><td style="padding-top:10px;">
     {% for patent in patents %}
-    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d8e0ea; border-radius:8px; margin-bottom:18px; background-color:#ffffff;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #b9cbe3; border-radius:7px; margin-bottom:18px; background-color:#ffffff;">
       <tr>
-        <td class="patent-image-cell" width="290" valign="top" style="width:290px; padding:18px; border-right:1px solid #e4e9ef; background-color:#f7f9fc; text-align:center; vertical-align:top;">
-          <img class="patent-image" src="{{ patent.image_url }}" width="255" style="width:255px; max-width:255px; height:auto; border-radius:6px; border:1px solid #e1e6ee; background-color:#fff; display:block; margin:0 auto;">
-        </td>
-        <td class="patent-text-cell" valign="top" style="padding:18px 22px 18px 20px; vertical-align:top;">
-          <p style="margin:0 0 6px 0; font-weight:bold; color:#005BAC; font-size:19px; line-height:1.45; word-break:keep-all;">
+        <td align="center" style="background-color:#f8fbff; border-bottom:1px solid #d8e5f4; padding:15px 18px;">
+          <p style="margin:0 0 7px 0; font-weight:bold; color:#005BAC; font-size:21px; line-height:1.35; word-break:keep-all;">
             {{ patent.title|e }}
           </p>
-          <p style="margin:0 0 12px 0; font-weight:bold; color:#555; font-size:14px; line-height:1.35;">
+          <p style="margin:0; font-weight:bold; color:#4b5563; font-size:14px; line-height:1.4;">
             ({{ patent.patent_id|e }})
-          </p>
-          {% if patent.target_industries %}
-          <table cellpadding="0" cellspacing="0" style="margin:0 0 10px 0;">
-            <tr>
+            {% if patent.target_industries %}
               {% for tag in patent.target_industries %}
-              <td style="background-color:#eef5ff; color:#005BAC; border:1px solid #c9ddf5; border-radius:4px; padding:5px 10px; font-size:13px; font-weight:bold;">
-                {{ tag|e }}
-              </td>
-              <td style="width:5px;">&nbsp;</td>
+                <span style="display:inline-block; background-color:#eef6ff; color:#005BAC; border:1px solid #b9d8ff; border-radius:4px; padding:4px 8px; margin-left:5px; font-size:13px; font-weight:bold;">{{ tag|e }}</span>
               {% endfor %}
-            </tr>
-          </table>
-          {% endif %}
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
-            <tr><td style="border-top:1px solid #eee; font-size:0; line-height:0; padding:0;">&nbsp;</td></tr>
-          </table>
-          {% for s in patent.summary %}
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px 0;">
+            {% endif %}
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:16px 18px 18px 18px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
-              <td valign="top" style="width:8px; padding-top:8px;">
-                <span style="display:block; width:4px; height:4px; background-color:#005BAC; border-radius:4px; font-size:0; line-height:0;">&nbsp;</span>
+              <td class="patent-left-cell" width="250" valign="top" style="width:250px; vertical-align:top;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" style="border:1px solid #d8e5f4; border-radius:6px; background-color:#ffffff; padding:10px;">
+                      <img class="patent-image" src="{{ patent.image_url }}" width="228" style="width:228px; max-width:228px; height:auto; border-radius:5px; display:block; margin:0 auto;">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding-top:8px;">
+                      <a href="{{ patent.smk_url }}" target="_blank" style="display:block; color:#005BAC; text-decoration:none; font-weight:bold; font-size:15px; line-height:1.25; border:1px solid #005BAC; border-radius:5px; background-color:#f7fbff; padding:11px 8px;">&#128196; 기술요약서(SMK) 보기</a>
+                    </td>
+                  </tr>
+                </table>
               </td>
-              <td style="background-color:#f8fbff; border-left:3px solid #d4e6fb; padding:8px 10px; font-size:16px; line-height:1.6; color:#263238; word-break:keep-all;">
-                {{ s|e }}
-              </td>
-            </tr>
-          </table>
-          {% endfor %}
-          <table cellpadding="0" cellspacing="0" style="margin-top:14px;">
-            <tr>
-              <td style="background-color:#f0f4f8; border:1px solid #005BAC; border-radius:5px; padding:8px 16px;">
-                <a href="{{ patent.smk_url }}" target="_blank" style="color:#005BAC; text-decoration:none; font-weight:bold; font-size:14px;">&#128196; 기술요약서(SMK) 보기</a>
+              <td class="patent-desc-cell" valign="top" style="padding-left:14px; vertical-align:top;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d8e5f4; border-radius:6px; background-color:#ffffff;">
+                  {% for s in patent.summary %}
+                  {% set parts = s.split(':', 1) %}
+                  <tr>
+                    <td valign="top" width="52" style="width:52px; padding:10px 8px 10px 16px; color:#005BAC; font-size:15px; line-height:1.45; font-weight:bold; border-bottom:1px solid #edf2f7; white-space:nowrap;">
+                      {{ parts[0]|replace('문제', '문제')|replace('이점', '이점')|replace('활용', '활용')|replace('추천', '추천')|e }}
+                    </td>
+                    <td valign="top" style="padding:10px 14px 10px 4px; color:#222; font-size:16px; line-height:1.45; border-bottom:1px solid #edf2f7; word-break:keep-all;">
+                      {{ (parts[1] if parts|length > 1 else s)|trim|e }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </table>
               </td>
             </tr>
           </table>
