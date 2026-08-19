@@ -36,7 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-19-large-rich-newsletter"
+APP_VERSION = "2026-08-19-impact-title-cards"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -428,12 +428,17 @@ def call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500):
         raise ValueError("PDF 페이지 이미지를 생성하지 못했습니다.")
 
     client = OpenAI(api_key=OPENAI_API_KEY)
+    content = [{"type": "input_text", "text": prompt}]
     content = [{"type": "text", "text": prompt}]
     for image_url in image_urls:
         content.append({
+            "type": "input_image",
+            "image_url": image_url,
+            "detail": "high",
             "type": "image_url",
             "image_url": {"url": image_url, "detail": "high"},
         })
+    return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
 
     response = client.chat.completions.create(
         model=VISION_MODEL_ID,
@@ -546,7 +551,39 @@ def fallback_summary_from_pdf_text(file_obj, pdf_text):
         "analysis_status": "text_extraction_failed",
     }
 
+
+def strengthen_title(title, problem="", business_value="", applications=""):
+    title = re.sub(r"\s+", " ", str(title or "")).strip()
+    if not title:
+        title = "기업 적용 가능 기술"
+
+    compact_len = len(re.sub(r"\s+", "", title))
+    if compact_len >= 12:
+        return title[:42]
+
+    title_lower = title.lower()
+    if "수소" in title:
+        return f"청정수소 생산 효율을 높이는 {title} 기술"[:42]
+    if "lora" in title_lower or "통신" in title:
+        return f"IoT 연결 안정성을 높이는 {title} 기술"[:42]
+    if "진단" in title or "의료" in applications or "병원" in business_value:
+        return f"진단 정확도와 효율을 높이는 {title} 기술"[:42]
+    if "rf" in title_lower or "송신" in title:
+        return f"무선 신호 전송 안정성을 높이는 {title} 기술"[:42]
+    if "스크립트" in title or "모델링" in applications:
+        return f"3D 모델링 업무를 자동화하는 {title} 기술"[:42]
+    if "광음향" in title:
+        return f"정밀 영상진단을 지원하는 {title} 기술"[:42]
+
+    source = " ".join([problem, business_value, applications])
+    if "자동" in source or "효율" in source:
+        return f"업무 효율을 높이는 {title} 기술"[:42]
+    if "비용" in source or "절감" in source:
+        return f"도입 비용 부담을 낮추는 {title} 기술"[:42]
+    return f"기업 적용성을 높이는 {title} 기술"[:42]
+
  
+def analyze_pdf_document(file_obj, test_mode=False):
 def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
     if test_mode or MOCK_MODE:
         return {
@@ -557,6 +594,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
             "summary": [
                 "문제: 소재 결합부의 강도와 생산 안정성을 개선합니다.",
                 "이점: 경량화와 공정 효율 향상에 기여할 수 있습니다.",
+                "활용: 자동차·전자부품·산업용 구조재에 적용 가능합니다."
                 "활용: 자동차·전자부품·산업용 구조재에 적용 가능합니다.",
                 "추천: 복합소재 부품을 생산하는 기업에 우선 제안할 수 있습니다."
             ],
@@ -565,6 +603,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
         }
  
     pdf_text = extract_pdf_text(file_obj)
+    use_visual_pdf_analysis = not is_pdf_text_usable(pdf_text)
     has_usable_pdf_text = is_pdf_text_usable(pdf_text)
     use_uploaded_image_analysis = image_file is not None
     use_visual_pdf_analysis = image_file is None and not has_usable_pdf_text
@@ -588,21 +627,31 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
     반드시 아래 JSON 스키마와 자료형을 정확히 지키세요:
     {{
       "title": "문자열 (기술 명칭, 15자 내외)",
+      "title": "문자열 (기술명 + 핵심 효용을 담은 뉴스레터 제목, 18~32자)",
       "problem": "기업 관점에서 이 기술이 해결하는 문제 1문장",
       "business_value": "도입 기업이 얻을 수 있는 사업적 이점 1문장",
       "applications": "적용 가능한 제품/공정/서비스 분야 1문장",
+      "summary": ["문제: ...", "이점: ...", "활용: ..."],
       "summary": ["문제: ...", "이점: ...", "활용: ...", "추천: ..."],
       "target_industries": ["산업태그1", "산업태그2", "산업태그3"],
       "category": "문자열"
     }}
 
     - title: 기술 명칭 (간결하게, 15자 내외 권장)
+    - title: 단순 기술명 한두 단어로 끝내지 말고, "기술명 + 기업 관점 핵심 효용"이 드러나는 제목으로 작성하세요.
+      18~32자 내외를 권장하며, 과장된 광고 문구 대신 구체적이고 신뢰감 있는 표현을 사용하세요.
+      좋은 예: "청정수소 생산 효율을 높이는 그린수소 기술", "IoT 연결 안정성을 높이는 LoRa 통신 기술", "폐질환 진단 정확도를 높이는 근적외선 기술"
+      나쁜 예: "그린수소", "LoRa 통신", "진단 기술", "RF 송신 기술"
     - problem/business_value/applications: 기술 설명이 아니라 기업 담당자가 읽고 판단하기 쉬운 비즈니스 언어로 작성하세요.
+    - summary: 반드시 JSON 배열(list) 형태로, 정확히 3개의 개별 문자열 요소로 구성하세요.
     - summary: 반드시 JSON 배열(list) 형태로, 정확히 4개의 개별 문자열 요소로 구성하세요.
       절대로 3개 문장을 하나의 문자열로 이어 붙이지 마세요. 배열의 각 요소가 아래 각 항목에 대응해야 합니다.
         1) "문제: "로 시작. 기업 현장에서 어떤 문제를 줄이는지
         2) "이점: "로 시작. 비용, 품질, 생산성, 안정성, 성능 중 어떤 이점이 있는지
         3) "활용: "로 시작. 적용 가능한 산업/제품/공정
+      각 문장은 35자 내외로 간결하게 작성하고, 세부 구성요소를 나열하는 명세서식 표현(예: 다중관 구조, 파라미터명 등)은 배제한 채
+      비전문가도 이해할 수 있는 쉬운 비즈니스 언어로 작성하세요. 한 문장에 여러 절을 쉼표로 길게 이어붙이지 말고 짧고 명확하게 끊어 쓰세요.
+      예시: "summary": ["문제: 강판 표면 결함 검사를 자동화합니다.", "이점: 육안 검사 대비 속도와 정확도를 높입니다.", "활용: 자동차·조선 금속 가공에 적용 가능합니다."]
         4) "추천: "으로 시작. 어떤 기업/부서/상황에 먼저 제안하면 좋은지
       각 문장은 45~70자 내외로 작성하세요. 너무 짧은 홍보 문구가 아니라 기업 담당자가 활용 가능성을 판단할 수 있게 구체적으로 작성하세요.
       세부 구성요소를 과도하게 나열하는 명세서식 표현(예: 다중관 구조, 파라미터명 등)은 배제하되, 적용 산업·기대효과·활용 장면은 충분히 담으세요.
@@ -620,6 +669,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
     """
 
     try:
+        if use_visual_pdf_analysis:
         if use_uploaded_image_analysis:
             parsed = call_openai_uploaded_image_json(prompt, image_file, max_output_tokens=2500)
         elif use_visual_pdf_analysis:
@@ -630,18 +680,27 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
             parsed = parsed[0] if parsed and isinstance(parsed[0], dict) else {}
         if not isinstance(parsed, dict):
             raise ValueError(f"예상치 못한 응답 형식(type={type(parsed).__name__})")
+        parsed["summary"] = normalize_summary_field(parsed.get("summary"))[:3]
+        while len(parsed["summary"]) < 3:
         parsed["summary"] = normalize_summary_field(parsed.get("summary"))[:4]
         while len(parsed["summary"]) < 4:
             parsed["summary"].append("세부 활용 분야는 상담을 통해 구체화할 수 있습니다.")
         parsed["problem"] = str(parsed.get("problem") or parsed["summary"][0]).strip()
         parsed["business_value"] = str(parsed.get("business_value") or parsed["summary"][1]).strip()
         parsed["applications"] = str(parsed.get("applications") or parsed["summary"][2]).strip()
+        parsed["title"] = strengthen_title(
+            parsed.get("title"),
+            problem=parsed["problem"],
+            business_value=parsed["business_value"],
+            applications=parsed["applications"],
+        )
         parsed["target_industries"] = normalize_list_field(parsed.get("target_industries"), ["적용산업 확인필요"])[:4]
         if parsed.get("category") not in [
             "바이오", "농림수산식품", "보건의료", "기계", "재료", "화공", "전기전자", "정보통신",
             "에너지자원", "원자력", "환경", "건설교통", "기계조선", "재료전자", "공정재료"
         ]:
             parsed["category"] = "기타"
+        if use_visual_pdf_analysis:
         if use_uploaded_image_analysis:
             parsed["analysis_status"] = "uploaded_image_analysis"
         elif use_visual_pdf_analysis:
@@ -649,6 +708,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
         return parsed
     except Exception as e:
         fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
+        fallback["summary"][0] = f"문제: AI 상세요약 실패({str(e)[:24]})"
         fallback["summary"][0] = "문제: AI 상세요약 실패로 원문 확인이 필요합니다."
         fallback["analysis_error"] = safe_error_message(e)
         return fallback
@@ -658,8 +718,16 @@ def group_patents_by_category(patent_list):
     for patent in patent_list:
         raw_cat = patent.get("category", "기타")
         cat = raw_cat.replace(" ", "").replace("\n", "") if raw_cat else "기타"
+def group_patents_by_category(patent_list):
+    grouped = {}
+    for patent in patent_list:
+        raw_cat = patent.get("category", "기타")
+        cat = raw_cat.replace(" ", "").replace("\n", "") if raw_cat else "기타"
         if cat not in grouped:
             grouped[cat] = []
+        grouped[cat].append(patent)
+    return grouped
+ 
         grouped[cat].append(patent)
     return grouped
 
@@ -677,12 +745,16 @@ html_template_str = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   @media only screen and (max-width: 720px) {
+    .container { width: 100% !important; max-width: 100% !important; padding: 14px !important; }
     .container { width: 100% !important; max-width: 100% !important; padding: 16px !important; }
     .brand-cell, .title-cell { display: block !important; width: 100% !important; text-align: left !important; }
+    .newsletter-title { font-size: 20px !important; padding-top: 8px !important; }
+    .hero-title { font-size: 22px !important; line-height: 1.35 !important; }
     .newsletter-title { font-size: 22px !important; padding-top: 8px !important; }
     .hero-title { font-size: 24px !important; line-height: 1.35 !important; }
     .patent-image-cell, .patent-text-cell { display: block !important; width: 100% !important; border-right: 0 !important; box-sizing: border-box !important; }
-    .patent-image { width: 100% !important; max-width: 340px !important; height: auto !important; }
+    .patent-image { width: 100% !important; max-width: 260px !important; height: auto !important; }
+    .patent-image { width: 100% !important; max-width: 380px !important; height: auto !important; }
     .cta-button { width: 100% !important; max-width: 420px !important; box-sizing: border-box !important; }
   }
 </style>
@@ -700,6 +772,7 @@ html_template_str = """<!DOCTYPE html>
  
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f7fa;">
 <tr><td align="center">
+<table class="container" width="680" cellpadding="0" cellspacing="0" style="width:680px; max-width:680px; background-color:#ffffff; padding:20px; font-family:'Malgun Gothic', sans-serif;">
 <table class="container" width="760" cellpadding="0" cellspacing="0" style="width:760px; max-width:760px; background-color:#ffffff; padding:24px; font-family:'Malgun Gothic', sans-serif;">
  
   <tr>
@@ -729,8 +802,10 @@ html_template_str = """<!DOCTYPE html>
  
   {% for category, patents in grouped_patents.items() %}
   <tr><td style="padding:10px 0 5px 0;">
+  <tr><td style="padding:14px 0 8px 0;">
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
+        <td style="background-color:#005BAC; padding:10px 18px; border-radius:6px; color:#ffffff; font-size:17px; font-weight:bold;">
         <td style="background-color:#005BAC; padding:12px 20px; border-radius:6px; color:#ffffff; font-size:18px; font-weight:bold;">
           &#9616; {{ category|e }} 분야
         </td>
@@ -740,15 +815,22 @@ html_template_str = """<!DOCTYPE html>
  
   <tr><td style="padding-top:10px;">
     {% for patent in patents %}
-    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ddd; border-radius:10px; margin-bottom:16px; background-color:#ffffff;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ddd; border-radius:10px; margin-bottom:12px; background-color:#ffffff;">
       <tr>
-        <td class="patent-image-cell" width="260" valign="middle" style="width:260px; padding:12px; border-right:1px solid #eee; background-color:#fafafa; text-align:center; vertical-align:middle;">
-          <img class="patent-image" src="{{ patent.image_url }}" width="230" height="200" style="width:230px; height:200px; object-fit:contain; border-radius:6px; border:1px solid #eee; background-color:#fff; display:block; margin:0 auto;">
+        <td class="patent-image-cell" width="190" valign="middle" style="width:190px; padding:8px; border-right:1px solid #eee; background-color:#fafafa; text-align:center; vertical-align:middle;">
+          <img class="patent-image" src="{{ patent.image_url }}" width="170" height="150" style="width:170px; height:150px; object-fit:contain; border-radius:6px; border:1px solid #eee; background-color:#fff; display:block; margin:0 auto;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d8e0ea; border-radius:8px; margin-bottom:18px; background-color:#ffffff;">
+      <tr>
+        <td class="patent-image-cell" width="290" valign="top" style="width:290px; padding:18px; border-right:1px solid #e4e9ef; background-color:#f7f9fc; text-align:center; vertical-align:top;">
+          <img class="patent-image" src="{{ patent.image_url }}" width="255" style="width:255px; max-width:255px; height:auto; border-radius:6px; border:1px solid #e1e6ee; background-color:#fff; display:block; margin:0 auto;">
         </td>
-        <td class="patent-text-cell" valign="top" style="padding:18px 20px; vertical-align:top;">
-          <p style="margin:0 0 4px 0; font-weight:bold; color:#005BAC; font-size:19px; line-height:1.35; word-break:keep-all;">
+        <td class="patent-text-cell" valign="top" style="padding:14px 16px; vertical-align:top;">
+          <p style="margin:0 0 3px 0; font-weight:bold; color:#005BAC; font-size:15px; line-height:1.4; word-break:keep-all;">
+        <td class="patent-text-cell" valign="top" style="padding:18px 22px 18px 20px; vertical-align:top;">
+          <p style="margin:0 0 6px 0; font-weight:bold; color:#005BAC; font-size:19px; line-height:1.45; word-break:keep-all;">
             {{ patent.title|e }}
           </p>
+          <p style="margin:0 0 10px 0; font-weight:bold; color:#555; font-size:13px; line-height:1.3;">
           <p style="margin:0 0 12px 0; font-weight:bold; color:#555; font-size:14px; line-height:1.35;">
             ({{ patent.patent_id|e }})
           </p>
@@ -756,6 +838,7 @@ html_template_str = """<!DOCTYPE html>
           <table cellpadding="0" cellspacing="0" style="margin:0 0 10px 0;">
             <tr>
               {% for tag in patent.target_industries %}
+              <td style="background-color:#eef5ff; color:#005BAC; border:1px solid #c9ddf5; border-radius:4px; padding:4px 8px; font-size:12px; font-weight:bold;">
               <td style="background-color:#eef5ff; color:#005BAC; border:1px solid #c9ddf5; border-radius:4px; padding:5px 10px; font-size:13px; font-weight:bold;">
                 {{ tag|e }}
               </td>
@@ -765,13 +848,27 @@ html_template_str = """<!DOCTYPE html>
           </table>
           {% endif %}
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
             <tr><td style="border-top:1px solid #eee; font-size:0; line-height:0; padding:0;">&nbsp;</td></tr>
           </table>
           {% for s in patent.summary %}
-          <p style="margin:0 0 7px 0; font-size:16px; line-height:1.65; color:#333; word-break:keep-all;">&#8226; {{ s|e }}</p>
+          <p style="margin:0 0 5px 0; font-size:14px; line-height:1.55; color:#333; word-break:keep-all;">&#8226; {{ s|e }}</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px 0;">
+            <tr>
+              <td valign="top" style="width:8px; padding-top:8px;">
+                <span style="display:block; width:4px; height:4px; background-color:#005BAC; border-radius:4px; font-size:0; line-height:0;">&nbsp;</span>
+              </td>
+              <td style="background-color:#f8fbff; border-left:3px solid #d4e6fb; padding:8px 10px; font-size:16px; line-height:1.6; color:#263238; word-break:keep-all;">
+                {{ s|e }}
+              </td>
+            </tr>
+          </table>
           {% endfor %}
+          <table cellpadding="0" cellspacing="0" style="margin-top:12px;">
           <table cellpadding="0" cellspacing="0" style="margin-top:14px;">
             <tr>
+              <td style="background-color:#f0f4f8; border:1px solid #005BAC; border-radius:5px; padding:6px 14px;">
+                <a href="{{ patent.smk_url }}" target="_blank" style="color:#005BAC; text-decoration:none; font-weight:bold; font-size:13px;">&#128196; 기술요약서(SMK) 보기</a>
               <td style="background-color:#f0f4f8; border:1px solid #005BAC; border-radius:5px; padding:8px 16px;">
                 <a href="{{ patent.smk_url }}" target="_blank" style="color:#005BAC; text-decoration:none; font-weight:bold; font-size:14px;">&#128196; 기술요약서(SMK) 보기</a>
               </td>
@@ -822,6 +919,7 @@ def main():
     if handle_tracking_request():
         return
 
+    st.title("🚀 PNUTH 뉴스레터 자동 생성기")
     st.title(f"🚀 PNUTH 뉴스레터 자동 생성기 [{APP_VERSION}]")
     st.caption(f"현재 실행 중인 앱 버전: {APP_VERSION}")
     st.info("PDF와 이미지 파일을 함께 업로드하세요. (파일명 번호 일치 필수)")
@@ -839,6 +937,10 @@ def main():
  
     if pdf_files:
         if st.button("뉴스레터 생성 시작"):
+            image_map = {os.path.splitext(img.name)[0]: img for img in (img_files or [])}
+            patent_list = []
+            status_text = st.empty()
+            progress_bar = st.progress(0)
             image_map = {upload_key(img): img for img in (img_files or [])}
             patent_list = []
             status_text = st.empty()
@@ -849,9 +951,15 @@ def main():
                 matched_image = image_map.get(patent_id)
                 status_text.text(f"⏳ {patent_id} 처리 중... ({idx+1}/{len(pdf_files)})")
  
+            for idx, uploaded_file in enumerate(pdf_files):
+                base_name = uploaded_file.name.split('_')[0]
+                patent_id = os.path.splitext(base_name)[0]
+                status_text.text(f"⏳ {patent_id} 처리 중... ({idx+1}/{len(pdf_files)})")
+ 
                 if not effective_test_mode:
                     time.sleep(5)
  
+                data = analyze_pdf_document(uploaded_file, test_mode=effective_test_mode)
                 data = analyze_pdf_document(uploaded_file, image_file=matched_image, test_mode=effective_test_mode)
                 data['patent_id'] = patent_id
                 if data.get("analysis_status") == "uploaded_image_analysis":
@@ -867,6 +975,8 @@ def main():
                 if data.get("analysis_status") == "text_extraction_failed":
                     error_text = data.get("analysis_error") or "상세 오류가 앱 로그에만 기록되었습니다."
                     st.warning(
+                        f"{uploaded_file.name}: PDF 원문 텍스트를 충분히 읽지 못해 "
+                        "확인 필요 카드로 처리했습니다. 스캔형 PDF라면 OCR 또는 텍스트형 PDF가 필요합니다."
                         f"{uploaded_file.name}: AI 분석에 실패해 확인 필요 카드로 처리했습니다.\n\n"
                         f"분석 실패 원인: {error_text}"
                     )
@@ -874,6 +984,11 @@ def main():
                 if effective_test_mode:
                     data['image_url'] = "https://via.placeholder.com/200x180?text=Test+Image"
                     data['smk_url'] = "#"
+                else:
+                    if patent_id in image_map:
+                        data['image_url'] = upload_file_to_github(image_map[patent_id], patent_id, "images")
+                    else:
+                        data['image_url'] = "https://via.placeholder.com/200x180?text=No+Image"
                 else:
                     if matched_image is not None:
                         data['image_url'] = upload_file_to_github(matched_image, patent_id, "images")
@@ -883,6 +998,8 @@ def main():
  
                 patent_list.append(data)
                 progress_bar.progress((idx + 1) / len(pdf_files))
+ 
+            status_text.success("🎉 생성 완료!")
  
             status_text.success("🎉 생성 완료!")
 
