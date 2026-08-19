@@ -428,12 +428,17 @@ def call_openai_pdf_image_json(prompt, file_obj, max_output_tokens=2500):
         raise ValueError("PDF 페이지 이미지를 생성하지 못했습니다.")
 
     client = OpenAI(api_key=OPENAI_API_KEY)
+    content = [{"type": "input_text", "text": prompt}]
     content = [{"type": "text", "text": prompt}]
     for image_url in image_urls:
         content.append({
+            "type": "input_image",
+            "image_url": image_url,
+            "detail": "high",
             "type": "image_url",
             "image_url": {"url": image_url, "detail": "high"},
         })
+    return call_openai_json_with_content(content, max_output_tokens=max_output_tokens)
 
     response = client.chat.completions.create(
         model=VISION_MODEL_ID,
@@ -546,6 +551,7 @@ def fallback_summary_from_pdf_text(file_obj, pdf_text):
     }
 
  
+def analyze_pdf_document(file_obj, test_mode=False):
 def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
     if test_mode or MOCK_MODE:
         return {
@@ -563,6 +569,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
         }
  
     pdf_text = extract_pdf_text(file_obj)
+    use_visual_pdf_analysis = not is_pdf_text_usable(pdf_text)
     has_usable_pdf_text = is_pdf_text_usable(pdf_text)
     use_uploaded_image_analysis = image_file is not None
     use_visual_pdf_analysis = image_file is None and not has_usable_pdf_text
@@ -617,6 +624,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
     """
 
     try:
+        if use_visual_pdf_analysis:
         if use_uploaded_image_analysis:
             parsed = call_openai_uploaded_image_json(prompt, image_file, max_output_tokens=2500)
         elif use_visual_pdf_analysis:
@@ -639,6 +647,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
             "에너지자원", "원자력", "환경", "건설교통", "기계조선", "재료전자", "공정재료"
         ]:
             parsed["category"] = "기타"
+        if use_visual_pdf_analysis:
         if use_uploaded_image_analysis:
             parsed["analysis_status"] = "uploaded_image_analysis"
         elif use_visual_pdf_analysis:
@@ -646,6 +655,7 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
         return parsed
     except Exception as e:
         fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
+        fallback["summary"][0] = f"문제: AI 상세요약 실패({str(e)[:24]})"
         fallback["summary"][0] = "문제: AI 상세요약 실패로 원문 확인이 필요합니다."
         fallback["analysis_error"] = safe_error_message(e)
         return fallback
@@ -655,8 +665,16 @@ def group_patents_by_category(patent_list):
     for patent in patent_list:
         raw_cat = patent.get("category", "기타")
         cat = raw_cat.replace(" ", "").replace("\n", "") if raw_cat else "기타"
+def group_patents_by_category(patent_list):
+    grouped = {}
+    for patent in patent_list:
+        raw_cat = patent.get("category", "기타")
+        cat = raw_cat.replace(" ", "").replace("\n", "") if raw_cat else "기타"
         if cat not in grouped:
             grouped[cat] = []
+        grouped[cat].append(patent)
+    return grouped
+ 
         grouped[cat].append(patent)
     return grouped
 
@@ -836,6 +854,10 @@ def main():
  
     if pdf_files:
         if st.button("뉴스레터 생성 시작"):
+            image_map = {os.path.splitext(img.name)[0]: img for img in (img_files or [])}
+            patent_list = []
+            status_text = st.empty()
+            progress_bar = st.progress(0)
             image_map = {upload_key(img): img for img in (img_files or [])}
             patent_list = []
             status_text = st.empty()
@@ -846,9 +868,15 @@ def main():
                 matched_image = image_map.get(patent_id)
                 status_text.text(f"⏳ {patent_id} 처리 중... ({idx+1}/{len(pdf_files)})")
  
+            for idx, uploaded_file in enumerate(pdf_files):
+                base_name = uploaded_file.name.split('_')[0]
+                patent_id = os.path.splitext(base_name)[0]
+                status_text.text(f"⏳ {patent_id} 처리 중... ({idx+1}/{len(pdf_files)})")
+ 
                 if not effective_test_mode:
                     time.sleep(5)
  
+                data = analyze_pdf_document(uploaded_file, test_mode=effective_test_mode)
                 data = analyze_pdf_document(uploaded_file, image_file=matched_image, test_mode=effective_test_mode)
                 data['patent_id'] = patent_id
                 if data.get("analysis_status") == "uploaded_image_analysis":
@@ -864,6 +892,8 @@ def main():
                 if data.get("analysis_status") == "text_extraction_failed":
                     error_text = data.get("analysis_error") or "상세 오류가 앱 로그에만 기록되었습니다."
                     st.warning(
+                        f"{uploaded_file.name}: PDF 원문 텍스트를 충분히 읽지 못해 "
+                        "확인 필요 카드로 처리했습니다. 스캔형 PDF라면 OCR 또는 텍스트형 PDF가 필요합니다."
                         f"{uploaded_file.name}: AI 분석에 실패해 확인 필요 카드로 처리했습니다.\n\n"
                         f"분석 실패 원인: {error_text}"
                     )
@@ -871,6 +901,11 @@ def main():
                 if effective_test_mode:
                     data['image_url'] = "https://via.placeholder.com/200x180?text=Test+Image"
                     data['smk_url'] = "#"
+                else:
+                    if patent_id in image_map:
+                        data['image_url'] = upload_file_to_github(image_map[patent_id], patent_id, "images")
+                    else:
+                        data['image_url'] = "https://via.placeholder.com/200x180?text=No+Image"
                 else:
                     if matched_image is not None:
                         data['image_url'] = upload_file_to_github(matched_image, patent_id, "images")
@@ -880,6 +915,8 @@ def main():
  
                 patent_list.append(data)
                 progress_bar.progress((idx + 1) / len(pdf_files))
+ 
+            status_text.success("🎉 생성 완료!")
  
             status_text.success("🎉 생성 완료!")
 
