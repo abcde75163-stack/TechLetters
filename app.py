@@ -838,7 +838,8 @@ def main():
         return
 
     st.title("🚀 PNUTH 뉴스레터 자동 생성기")
-    st.caption(f"앱 버전: {APP_VERSION}")
+    st.title(f"🚀 PNUTH 뉴스레터 자동 생성기 [{APP_VERSION}]")
+    st.caption(f"현재 실행 중인 앱 버전: {APP_VERSION}")
     st.info("PDF와 이미지 파일을 함께 업로드하세요. (파일명 번호 일치 필수)")
     if MOCK_MODE:
         st.warning("OPENAI_API_KEY가 없어 MOCK 모드로 동작합니다. 실제 PDF 분석 대신 테스트 요약이 사용됩니다.")
