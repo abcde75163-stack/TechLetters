@@ -36,7 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-19-image-first-diagnostics"
+APP_VERSION = "2026-08-19-large-rich-newsletter"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -539,6 +539,7 @@ def fallback_summary_from_pdf_text(file_obj, pdf_text):
             "문제: 원문 인식 후 기업 수요를 검토합니다.",
             "이점: 상담을 통해 기술효과를 구체화합니다.",
             "활용: 적용 산업은 SMK 확인 후 제안합니다.",
+            "추천: 관심 기업에는 SMK 원문 확인과 후속 상담을 함께 안내합니다.",
         ],
         "target_industries": ["SMK확인필요"],
         "category": "기타",
@@ -556,7 +557,8 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
             "summary": [
                 "문제: 소재 결합부의 강도와 생산 안정성을 개선합니다.",
                 "이점: 경량화와 공정 효율 향상에 기여할 수 있습니다.",
-                "활용: 자동차·전자부품·산업용 구조재에 적용 가능합니다."
+                "활용: 자동차·전자부품·산업용 구조재에 적용 가능합니다.",
+                "추천: 복합소재 부품을 생산하는 기업에 우선 제안할 수 있습니다."
             ],
             "target_industries": ["자동차부품", "전자부품", "소재·부품"],
             "category": "테스트분야"
@@ -589,21 +591,22 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
       "problem": "기업 관점에서 이 기술이 해결하는 문제 1문장",
       "business_value": "도입 기업이 얻을 수 있는 사업적 이점 1문장",
       "applications": "적용 가능한 제품/공정/서비스 분야 1문장",
-      "summary": ["문제: ...", "이점: ...", "활용: ..."],
+      "summary": ["문제: ...", "이점: ...", "활용: ...", "추천: ..."],
       "target_industries": ["산업태그1", "산업태그2", "산업태그3"],
       "category": "문자열"
     }}
 
     - title: 기술 명칭 (간결하게, 15자 내외 권장)
     - problem/business_value/applications: 기술 설명이 아니라 기업 담당자가 읽고 판단하기 쉬운 비즈니스 언어로 작성하세요.
-    - summary: 반드시 JSON 배열(list) 형태로, 정확히 3개의 개별 문자열 요소로 구성하세요.
+    - summary: 반드시 JSON 배열(list) 형태로, 정확히 4개의 개별 문자열 요소로 구성하세요.
       절대로 3개 문장을 하나의 문자열로 이어 붙이지 마세요. 배열의 각 요소가 아래 각 항목에 대응해야 합니다.
         1) "문제: "로 시작. 기업 현장에서 어떤 문제를 줄이는지
         2) "이점: "로 시작. 비용, 품질, 생산성, 안정성, 성능 중 어떤 이점이 있는지
         3) "활용: "로 시작. 적용 가능한 산업/제품/공정
-      각 문장은 35자 내외로 간결하게 작성하고, 세부 구성요소를 나열하는 명세서식 표현(예: 다중관 구조, 파라미터명 등)은 배제한 채
-      비전문가도 이해할 수 있는 쉬운 비즈니스 언어로 작성하세요. 한 문장에 여러 절을 쉼표로 길게 이어붙이지 말고 짧고 명확하게 끊어 쓰세요.
-      예시: "summary": ["문제: 강판 표면 결함 검사를 자동화합니다.", "이점: 육안 검사 대비 속도와 정확도를 높입니다.", "활용: 자동차·조선 금속 가공에 적용 가능합니다."]
+        4) "추천: "으로 시작. 어떤 기업/부서/상황에 먼저 제안하면 좋은지
+      각 문장은 45~70자 내외로 작성하세요. 너무 짧은 홍보 문구가 아니라 기업 담당자가 활용 가능성을 판단할 수 있게 구체적으로 작성하세요.
+      세부 구성요소를 과도하게 나열하는 명세서식 표현(예: 다중관 구조, 파라미터명 등)은 배제하되, 적용 산업·기대효과·활용 장면은 충분히 담으세요.
+      예시: "summary": ["문제: 강판 표면 결함 검사를 자동화해 반복 검사 부담을 줄입니다.", "이점: 육안 검사 대비 속도와 정확도를 높여 품질 편차를 낮춥니다.", "활용: 자동차·조선·금속 가공 공정의 검사 자동화에 적용할 수 있습니다.", "추천: 금속 부품 품질검사 비용을 줄이려는 제조기업에 우선 제안합니다."]
     - target_industries: 기업이 빠르게 판단할 수 있는 적용 산업 태그를 2~4개 작성하세요. 예: 자동차부품, 의료기기, 반도체장비, 스마트팩토리, 이차전지, 조선해양, 식품바이오
     - category: 아래 15개 고정 목록 중에서, 기술의 명칭·요약·적용분야 내용을 근거로 가장 근접한 분야 하나만 추론하여 선택하세요.
       [바이오, 농림수산식품, 보건의료, 기계, 재료, 화공, 전기전자, 정보통신, 에너지자원, 원자력, 환경, 건설교통, 기계조선, 재료전자, 공정재료]
@@ -627,8 +630,8 @@ def analyze_pdf_document(file_obj, image_file=None, test_mode=False):
             parsed = parsed[0] if parsed and isinstance(parsed[0], dict) else {}
         if not isinstance(parsed, dict):
             raise ValueError(f"예상치 못한 응답 형식(type={type(parsed).__name__})")
-        parsed["summary"] = normalize_summary_field(parsed.get("summary"))[:3]
-        while len(parsed["summary"]) < 3:
+        parsed["summary"] = normalize_summary_field(parsed.get("summary"))[:4]
+        while len(parsed["summary"]) < 4:
             parsed["summary"].append("세부 활용 분야는 상담을 통해 구체화할 수 있습니다.")
         parsed["problem"] = str(parsed.get("problem") or parsed["summary"][0]).strip()
         parsed["business_value"] = str(parsed.get("business_value") or parsed["summary"][1]).strip()
@@ -674,12 +677,12 @@ html_template_str = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   @media only screen and (max-width: 720px) {
-    .container { width: 100% !important; max-width: 100% !important; padding: 14px !important; }
+    .container { width: 100% !important; max-width: 100% !important; padding: 16px !important; }
     .brand-cell, .title-cell { display: block !important; width: 100% !important; text-align: left !important; }
-    .newsletter-title { font-size: 20px !important; padding-top: 8px !important; }
-    .hero-title { font-size: 22px !important; line-height: 1.35 !important; }
+    .newsletter-title { font-size: 22px !important; padding-top: 8px !important; }
+    .hero-title { font-size: 24px !important; line-height: 1.35 !important; }
     .patent-image-cell, .patent-text-cell { display: block !important; width: 100% !important; border-right: 0 !important; box-sizing: border-box !important; }
-    .patent-image { width: 100% !important; max-width: 260px !important; height: auto !important; }
+    .patent-image { width: 100% !important; max-width: 340px !important; height: auto !important; }
     .cta-button { width: 100% !important; max-width: 420px !important; box-sizing: border-box !important; }
   }
 </style>
@@ -697,7 +700,7 @@ html_template_str = """<!DOCTYPE html>
  
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f7fa;">
 <tr><td align="center">
-<table class="container" width="680" cellpadding="0" cellspacing="0" style="width:680px; max-width:680px; background-color:#ffffff; padding:20px; font-family:'Malgun Gothic', sans-serif;">
+<table class="container" width="760" cellpadding="0" cellspacing="0" style="width:760px; max-width:760px; background-color:#ffffff; padding:24px; font-family:'Malgun Gothic', sans-serif;">
  
   <tr>
     <td style="border-bottom:2px solid #005BAC; padding-bottom:10px;">
@@ -728,7 +731,7 @@ html_template_str = """<!DOCTYPE html>
   <tr><td style="padding:10px 0 5px 0;">
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="background-color:#005BAC; padding:10px 18px; border-radius:6px; color:#ffffff; font-size:17px; font-weight:bold;">
+        <td style="background-color:#005BAC; padding:12px 20px; border-radius:6px; color:#ffffff; font-size:18px; font-weight:bold;">
           &#9616; {{ category|e }} 분야
         </td>
       </tr>
@@ -737,23 +740,23 @@ html_template_str = """<!DOCTYPE html>
  
   <tr><td style="padding-top:10px;">
     {% for patent in patents %}
-    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ddd; border-radius:10px; margin-bottom:12px; background-color:#ffffff;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ddd; border-radius:10px; margin-bottom:16px; background-color:#ffffff;">
       <tr>
-        <td class="patent-image-cell" width="190" valign="middle" style="width:190px; padding:8px; border-right:1px solid #eee; background-color:#fafafa; text-align:center; vertical-align:middle;">
-          <img class="patent-image" src="{{ patent.image_url }}" width="170" height="150" style="width:170px; height:150px; object-fit:contain; border-radius:6px; border:1px solid #eee; background-color:#fff; display:block; margin:0 auto;">
+        <td class="patent-image-cell" width="260" valign="middle" style="width:260px; padding:12px; border-right:1px solid #eee; background-color:#fafafa; text-align:center; vertical-align:middle;">
+          <img class="patent-image" src="{{ patent.image_url }}" width="230" height="200" style="width:230px; height:200px; object-fit:contain; border-radius:6px; border:1px solid #eee; background-color:#fff; display:block; margin:0 auto;">
         </td>
-        <td class="patent-text-cell" valign="top" style="padding:14px 16px; vertical-align:top;">
-          <p style="margin:0 0 3px 0; font-weight:bold; color:#005BAC; font-size:15px; line-height:1.4; word-break:keep-all;">
+        <td class="patent-text-cell" valign="top" style="padding:18px 20px; vertical-align:top;">
+          <p style="margin:0 0 4px 0; font-weight:bold; color:#005BAC; font-size:19px; line-height:1.35; word-break:keep-all;">
             {{ patent.title|e }}
           </p>
-          <p style="margin:0 0 10px 0; font-weight:bold; color:#555; font-size:13px; line-height:1.3;">
+          <p style="margin:0 0 12px 0; font-weight:bold; color:#555; font-size:14px; line-height:1.35;">
             ({{ patent.patent_id|e }})
           </p>
           {% if patent.target_industries %}
           <table cellpadding="0" cellspacing="0" style="margin:0 0 10px 0;">
             <tr>
               {% for tag in patent.target_industries %}
-              <td style="background-color:#eef5ff; color:#005BAC; border:1px solid #c9ddf5; border-radius:4px; padding:4px 8px; font-size:12px; font-weight:bold;">
+              <td style="background-color:#eef5ff; color:#005BAC; border:1px solid #c9ddf5; border-radius:4px; padding:5px 10px; font-size:13px; font-weight:bold;">
                 {{ tag|e }}
               </td>
               <td style="width:5px;">&nbsp;</td>
@@ -765,12 +768,12 @@ html_template_str = """<!DOCTYPE html>
             <tr><td style="border-top:1px solid #eee; font-size:0; line-height:0; padding:0;">&nbsp;</td></tr>
           </table>
           {% for s in patent.summary %}
-          <p style="margin:0 0 5px 0; font-size:14px; line-height:1.55; color:#333; word-break:keep-all;">&#8226; {{ s|e }}</p>
+          <p style="margin:0 0 7px 0; font-size:16px; line-height:1.65; color:#333; word-break:keep-all;">&#8226; {{ s|e }}</p>
           {% endfor %}
-          <table cellpadding="0" cellspacing="0" style="margin-top:12px;">
+          <table cellpadding="0" cellspacing="0" style="margin-top:14px;">
             <tr>
-              <td style="background-color:#f0f4f8; border:1px solid #005BAC; border-radius:5px; padding:6px 14px;">
-                <a href="{{ patent.smk_url }}" target="_blank" style="color:#005BAC; text-decoration:none; font-weight:bold; font-size:13px;">&#128196; 기술요약서(SMK) 보기</a>
+              <td style="background-color:#f0f4f8; border:1px solid #005BAC; border-radius:5px; padding:8px 16px;">
+                <a href="{{ patent.smk_url }}" target="_blank" style="color:#005BAC; text-decoration:none; font-weight:bold; font-size:14px;">&#128196; 기술요약서(SMK) 보기</a>
               </td>
             </tr>
           </table>
