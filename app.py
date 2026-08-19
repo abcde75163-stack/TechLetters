@@ -279,6 +279,8 @@ def extract_pdf_text(file_obj, max_chars=12000):
 
 def extract_json(raw_text):
     raw = raw_text.strip()
+    if not raw:
+        raise ValueError("OpenAI 응답 텍스트가 비어 있습니다.")
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
@@ -296,7 +298,21 @@ def extract_json(raw_text):
     raise ValueError(f"JSON 객체를 찾지 못했습니다: {raw[:300]}")
 
 
-def call_openai_json(prompt, max_output_tokens=1200):
+def response_text(response):
+    text = getattr(response, "output_text", "") or ""
+    if text.strip():
+        return text
+
+    chunks = []
+    for item in getattr(response, "output", []) or []:
+        for content in getattr(item, "content", []) or []:
+            value = getattr(content, "text", None)
+            if value:
+                chunks.append(value)
+    return "\n".join(chunks)
+
+
+def call_openai_json(prompt, max_output_tokens=2500):
     from openai import (
         APIConnectionError,
         APIError,
@@ -322,12 +338,19 @@ def call_openai_json(prompt, max_output_tokens=1200):
                 text={"format": {"type": "json_object"}},
                 max_output_tokens=max_output_tokens,
             )
-            return extract_json(response.output_text)
+            raw_text = response_text(response)
+            return extract_json(raw_text)
         except BadRequestError as e:
             if FALLBACK_MODEL_ID and is_capacity_error(e) and model != FALLBACK_MODEL_ID:
                 model = FALLBACK_MODEL_ID
                 continue
             raise
+        except (ValueError, json.JSONDecodeError) as e:
+            if attempt == 3:
+                raise
+            wait = min(20, (2 ** attempt) * 2)
+            st.warning(f"AI 응답 형식 오류({str(e)[:60]}), {wait}초 후 재시도... ({attempt+1}/4)")
+            time.sleep(wait)
         except retryable_errors as e:
             if FALLBACK_MODEL_ID and is_capacity_error(e) and model != FALLBACK_MODEL_ID:
                 model = FALLBACK_MODEL_ID
@@ -344,6 +367,38 @@ def call_openai_json(prompt, max_output_tokens=1200):
 def is_capacity_error(error):
     message = str(error).lower()
     return "capacity" in message or "overloaded" in message or "temporarily unavailable" in message
+
+
+def fallback_summary_from_pdf_text(file_obj, pdf_text):
+    name = os.path.splitext(getattr(file_obj, "name", "기술요약서"))[0]
+    clean_lines = [
+        re.sub(r"\s+", " ", line).strip()
+        for line in (pdf_text or "").splitlines()
+        if len(line.strip()) >= 8
+    ]
+    title = name
+    for line in clean_lines[:20]:
+        if any(token in line for token in ["기술명", "발명의 명칭", "명칭"]):
+            title = line.split(":")[-1].split("：")[-1].strip()[:40] or name
+            break
+
+    joined = " ".join(clean_lines[:12])
+    if not joined:
+        joined = "PDF 텍스트를 충분히 추출하지 못했습니다."
+
+    return {
+        "title": title[:40],
+        "problem": "업로드된 SMK 내용을 바탕으로 기업 적용 가능성을 검토할 수 있습니다.",
+        "business_value": "세부 기술효과와 사업화 포인트는 SMK 확인 후 상담에서 구체화할 수 있습니다.",
+        "applications": joined[:90],
+        "summary": [
+            "문제: 관련 기업의 기술 개선 수요 검토에 활용할 수 있습니다.",
+            "이점: SMK를 통해 차별성과 적용 가능성을 빠르게 확인할 수 있습니다.",
+            f"활용: {joined[:55]}",
+        ],
+        "target_industries": ["적용산업 확인필요"],
+        "category": "기타",
+    }
 
  
 def analyze_pdf_document(file_obj, test_mode=False):
@@ -400,7 +455,7 @@ def analyze_pdf_document(file_obj, test_mode=False):
     """
 
     try:
-        parsed = call_openai_json(prompt)
+        parsed = call_openai_json(prompt, max_output_tokens=2500)
         if isinstance(parsed, list):
             parsed = parsed[0] if parsed and isinstance(parsed[0], dict) else {}
         if not isinstance(parsed, dict):
@@ -419,15 +474,9 @@ def analyze_pdf_document(file_obj, test_mode=False):
             parsed["category"] = "기타"
         return parsed
     except Exception as e:
-        return {
-            "title": "분석 지연",
-            "problem": "PDF 분석이 지연되어 기술 문제 정의를 확인하지 못했습니다.",
-            "business_value": "API 응답 또는 PDF 텍스트 추출 상태 확인이 필요합니다.",
-            "applications": "테스트 모드로 레이아웃 확인은 가능합니다.",
-            "summary": [f"사유: {str(e)[:50]}", "PDF 텍스트 추출 또는 API 응답을 확인해 주세요.", "테스트 모드로 레이아웃 확인은 가능합니다."],
-            "target_industries": ["확인필요"],
-            "category": "기타",
-        }
+        fallback = fallback_summary_from_pdf_text(file_obj, pdf_text)
+        fallback["summary"][0] = f"문제: AI 상세요약 실패({str(e)[:24]})"
+        return fallback
  
 def group_patents_by_category(patent_list):
     grouped = {}
