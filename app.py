@@ -36,8 +36,9 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 TECH_DETAIL_BASE_URL = get_secret("TECH_DETAIL_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
+TECHNOLOGIES_JSON_PATH = "data/technologies.json"
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-20-vercel-detail-links"
+APP_VERSION = "2026-08-20-vercel-detail-data-sync"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -228,6 +229,103 @@ def upload_file_to_github(file_obj, patent_id, folder_name):
 
     st.warning(f"⚠️ 업로드 실패: {file_name} (status: {put_res.status_code})")
     return "https://via.placeholder.com/220?text=Upload+Error"
+
+
+def strip_summary_prefix(text):
+    text = str(text or "").strip()
+    return re.sub(r"^(문제|이점|활용|추천)\s*[:：]\s*", "", text).strip()
+
+
+def summary_text(patent, label, index, fallback):
+    summary = normalize_summary_field(patent.get("summary"))
+    for item in summary:
+        if str(item).strip().startswith(label):
+            return strip_summary_prefix(item)
+    if len(summary) > index:
+        return strip_summary_prefix(summary[index])
+    return fallback
+
+
+def build_technology_records(patent_list):
+    records = []
+    for patent in patent_list:
+        patent_id = patent.get("patent_id", "")
+        if not patent_id:
+            continue
+
+        tags = patent.get("target_industries") or []
+        if isinstance(tags, str):
+            tags = [item.strip() for item in re.split(r"[,/·]", tags) if item.strip()]
+        tags = [str(tag).strip() for tag in tags if str(tag).strip()]
+        if not tags and patent.get("category"):
+            tags = [patent.get("category")]
+
+        problem = patent.get("problem") or summary_text(
+            patent,
+            "문제",
+            0,
+            "기업 적용 과정에서 해결해야 할 현장 문제를 중심으로 검토할 수 있습니다.",
+        )
+        benefit = patent.get("business_value") or summary_text(
+            patent,
+            "이점",
+            1,
+            "도입 시 비용, 시간, 품질 측면의 개선 가능성을 검토할 수 있습니다.",
+        )
+        use_case = patent.get("applications") or summary_text(
+            patent,
+            "활용",
+            2,
+            "관련 산업의 제품, 공정, 서비스 개선 영역에 적용할 수 있습니다.",
+        )
+        recommendation = summary_text(
+            patent,
+            "추천",
+            3,
+            "해당 분야의 기술 고도화나 사업화 수요가 있는 기업에 우선 제안할 수 있습니다.",
+        )
+
+        records.append({
+            "id": patent_id,
+            "title": str(patent.get("title") or patent_id).strip(),
+            "category": str(patent.get("category") or "기타").strip(),
+            "tags": tags[:3],
+            "image_url": patent.get("image_url", ""),
+            "pdf_url": patent.get("smk_url", "#"),
+            "problem": str(problem).strip(),
+            "benefit": str(benefit).strip(),
+            "use_case": str(use_case).strip(),
+            "recommendation": str(recommendation).strip(),
+        })
+    return records
+
+
+def publish_technologies_json(patent_list):
+    new_records = build_technology_records(patent_list)
+    if not new_records:
+        return False
+
+    existing_content, sha = get_github_file(TECHNOLOGIES_JSON_PATH)
+    existing_records = []
+    if existing_content.strip():
+        try:
+            parsed = json.loads(existing_content)
+            if isinstance(parsed, list):
+                existing_records = parsed
+        except Exception:
+            existing_records = []
+
+    merged = {str(item.get("id", "")): item for item in existing_records if item.get("id")}
+    for record in new_records:
+        merged[record["id"]] = record
+
+    content = json.dumps(list(merged.values()), ensure_ascii=False, indent=2)
+    return put_github_file(
+        TECHNOLOGIES_JSON_PATH,
+        content + "\n",
+        sha=sha,
+        message="Update newsletter technology detail data",
+    )
 
 
 def normalize_summary_field(summary):
@@ -963,6 +1061,13 @@ def main():
                 })
             st.subheader("분석 진단 결과")
             st.dataframe(diagnostics, use_container_width=True)
+
+            if TECH_DETAIL_BASE_URL and not effective_test_mode:
+                if publish_technologies_json(patent_list):
+                    st.success("Vercel 상세 페이지용 data/technologies.json을 GitHub에 업데이트했습니다.")
+                    st.info("Vercel이 GitHub 변경사항을 다시 배포하는 데 1~2분 정도 걸릴 수 있습니다.")
+                else:
+                    st.warning("data/technologies.json 업데이트에 실패했습니다. GitHub 토큰 권한을 확인하세요.")
  
             grouped_patents = group_patents_by_category(patent_list)
             now = datetime.datetime.now()
