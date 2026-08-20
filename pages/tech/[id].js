@@ -29,7 +29,7 @@ export default function TechDetail({ tech }) {
 
         <div style={styles.meta}>
           <strong>{tech.id}</strong>
-          {tech.tags.map((tag) => (
+          {(tech.tags || []).map((tag) => (
             <span key={tag} style={styles.tag}>{tag}</span>
           ))}
         </div>
@@ -53,7 +53,7 @@ export default function TechDetail({ tech }) {
 
         <div style={styles.footerButtons}>
           <a
-            href={trackUrl("consult", "https://clever-designers-959477.framer.app/pium-%EA%B8%B0%EC%88%A0%EC%83%81%EB%8B%B4")}
+            href={trackUrl("consult", "https://clever-designers-959477.framer.app/pium-%EA%B8%B0%EC%88%A0%EC%82%AC%EC%97%85%ED%99%94-%EC%84%BC%ED%84%B0-%EC%88%98%EC%9A%94%EA%B8%B0%EC%88%A0-%EC%A0%91%EC%88%98-%ED%8E%98%EC%9D%B4%EC%A7%80")}
             style={styles.secondaryButton}
           >
             수요기술 상담신청
@@ -85,17 +85,25 @@ export async function getStaticPaths() {
     paths: technologies.map((tech) => ({
       params: { id: tech.id }
     })),
-    fallback: false
+    fallback: "blocking"
   };
 }
 
 export async function getStaticProps({ params }) {
   const tech = technologies.find((item) => item.id === params.id) || null;
 
+  if (!tech) {
+    return {
+      notFound: true,
+      revalidate: 60
+    };
+  }
+
   return {
     props: {
       tech
-    }
+    },
+    revalidate: 60
   };
 }
 
