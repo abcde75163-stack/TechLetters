@@ -33,10 +33,11 @@ MODEL_ID = get_secret("OPENAI_MODEL", "gpt-5")
 FALLBACK_MODEL_ID = get_secret("OPENAI_FALLBACK_MODEL", "")
 VISION_MODEL_ID = get_secret("OPENAI_VISION_MODEL", "gpt-4o-mini")
 TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
+TECH_DETAIL_BASE_URL = get_secret("TECH_DETAIL_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-20-direct-all-links"
+APP_VERSION = "2026-08-20-vercel-detail-links"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -82,7 +83,7 @@ def build_click_tracking_url(target_url, campaign_id, link_type, tech_id="", cat
         "link_type": link_type,
         "tech_id": tech_id,
         "category": category,
-        "target": quote_plus(tagged_target),
+        "target": tagged_target,
     }
     return f"{TRACKING_BASE_URL.rstrip('/')}?{urlencode(params)}"
 
@@ -968,15 +969,28 @@ def main():
             week_str = f"{now.year}년 {now.month}월 {get_week_of_month(now)}주차"
             campaign_id = f"{DEFAULT_CAMPAIGN_PREFIX}_{now.strftime('%Y%m%d')}"
             for patent in patent_list:
-                patent["smk_url"] = with_tracking(
-                    patent.get("smk_url", "#"),
-                    utm_source="newsletter",
-                    utm_medium="email",
-                    utm_campaign=campaign_id,
-                    tech_id=patent.get("patent_id"),
-                    category=patent.get("category"),
-                    link_type="smk",
-                )
+                patent_id = patent.get("patent_id", "")
+                category = patent.get("category", "")
+
+                if TECH_DETAIL_BASE_URL and patent_id:
+                    detail_url = f"{TECH_DETAIL_BASE_URL.rstrip('/')}/tech/{patent_id}"
+                    patent["smk_url"] = build_click_tracking_url(
+                        detail_url,
+                        campaign_id,
+                        "tech_detail",
+                        tech_id=patent_id,
+                        category=category,
+                    )
+                else:
+                    patent["smk_url"] = with_tracking(
+                        patent.get("smk_url", "#"),
+                        utm_source="newsletter",
+                        utm_medium="email",
+                        utm_campaign=campaign_id,
+                        tech_id=patent_id,
+                        category=category,
+                        link_type="smk",
+                    )
  
             template = Template(html_template_str)
             result_html = template.render(
