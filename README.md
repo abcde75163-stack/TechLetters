@@ -18,7 +18,7 @@ CLICK_LOG_PATH = "logs/click_logs.csv"
 
 - `OPENAI_API_KEY`가 없으면 테스트/MOCK 모드로 동작합니다.
 - `GITHUB_TOKEN`, `GITHUB_REPO`가 없으면 PDF/이미지 외부 링크 업로드는 비활성화됩니다.
-- PDF/이미지 링크는 GitHub Pages가 아니라 `raw.githubusercontent.com` 원본 파일 주소로 생성됩니다.
+- PDF 링크는 브라우저 내 PDF 보기 가능성을 높이기 위해 jsDelivr CDN 주소로 생성되며, 이미지는 `raw.githubusercontent.com` 원본 파일 주소로 생성됩니다.
 - PDF는 PyMuPDF로 텍스트를 추출한 뒤 OpenAI API로 뉴스레터용 제목/요약/분야를 생성합니다.
 - 같은 기술번호의 PNG/JPG가 있으면 해당 이미지를 `OPENAI_VISION_MODEL`로 먼저 분석합니다.
 - 같은 기술번호 이미지가 없을 때는 PDF 페이지를 이미지로 변환한 뒤 `OPENAI_VISION_MODEL`로 다시 분석합니다.
