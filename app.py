@@ -36,7 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-20-instant-pdf-viewer-links"
+APP_VERSION = "2026-08-20-direct-all-links"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -968,12 +968,14 @@ def main():
             week_str = f"{now.year}년 {now.month}월 {get_week_of_month(now)}주차"
             campaign_id = f"{DEFAULT_CAMPAIGN_PREFIX}_{now.strftime('%Y%m%d')}"
             for patent in patent_list:
-                patent["smk_url"] = build_click_tracking_url(
+                patent["smk_url"] = with_tracking(
                     patent.get("smk_url", "#"),
-                    campaign_id=campaign_id,
-                    link_type="smk",
+                    utm_source="newsletter",
+                    utm_medium="email",
+                    utm_campaign=campaign_id,
                     tech_id=patent.get("patent_id"),
                     category=patent.get("category"),
+                    link_type="smk",
                 )
  
             template = Template(html_template_str)
@@ -982,14 +984,18 @@ def main():
                 grouped_patents=grouped_patents,
                 logo_url=LOGO_URL,
                 bldg_url=BLDG_URL,
-                consult_url=build_click_tracking_url(
+                consult_url=with_tracking(
                     CONSULT_URL,
-                    campaign_id=campaign_id,
+                    utm_source="newsletter",
+                    utm_medium="email",
+                    utm_campaign=campaign_id,
                     link_type="consult",
                 ),
-                pr_url=build_click_tracking_url(
+                pr_url=with_tracking(
                     PR_URL,
-                    campaign_id=campaign_id,
+                    utm_source="newsletter",
+                    utm_medium="email",
+                    utm_campaign=campaign_id,
                     link_type="pr",
                 )
             )
