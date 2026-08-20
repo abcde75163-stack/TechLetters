@@ -30,7 +30,9 @@ CLICK_LOG_PATH = "logs/click_logs.csv"
 
 ## 클릭 추적: GitHub CSV 방식
 
-`TRACKING_BASE_URL`, `GITHUB_TOKEN`, `GITHUB_REPO`를 설정하면 뉴스레터 링크가 Streamlit 앱을 먼저 거치며 GitHub 저장소의 CSV 파일에 클릭 로그를 저장합니다.
+현재 뉴스레터의 SMK, 상담신청, 홍보채널 링크는 모두 중간 추적 페이지 없이 직접 목적지로 연결합니다. 메일/브라우저 호환성을 우선하기 위한 설정입니다.
+
+Streamlit 기반 클릭 추적 함수는 코드에 남아 있지만, 직접 링크 방식에서는 CSV 클릭 로그가 생성되지 않습니다. 클릭 집계가 반드시 필요하면 302 리다이렉트를 지원하는 별도 추적 엔드포인트가 필요합니다.
 
 기본 저장 위치:
 
@@ -44,8 +46,6 @@ CSV에는 아래 컬럼이 자동 생성됩니다.
 clicked_at, campaign, link_type, tech_id, category, target_url, source_app
 ```
 
-- `link_type=smk`: 기술요약서 클릭
-- `link_type=consult`: 수요기술 상담신청 클릭
-- `link_type=pr`: PNUTH 홍보 채널 클릭
+- 직접 링크 방식에서는 `link_type` 값이 URL 파라미터로만 붙고 CSV에는 기록되지 않습니다.
 
 GitHub 토큰에는 해당 저장소의 `Contents: Read and write` 권한이 필요합니다. 클릭이 발생할 때마다 CSV 파일 업데이트 커밋이 생성됩니다.
