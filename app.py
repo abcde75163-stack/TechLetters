@@ -36,7 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-19-dense-rich-rectangle-cards"
+APP_VERSION = "2026-08-20-raw-pdf-links"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -220,10 +220,7 @@ def upload_file_to_github(file_obj, patent_id, folder_name):
  
     if put_res.status_code in [200, 201]:
         user_id, repo_name = GH_REPO.split('/')
-        if folder_name == "pdfs":
-            return f"https://{user_id}.github.io/{repo_name}/{file_name}"
-        else:
-            return f"https://raw.githubusercontent.com/{user_id}/{repo_name}/main/{file_name}"
+        return f"https://raw.githubusercontent.com/{user_id}/{repo_name}/main/{file_name}"
 
     st.warning(f"⚠️ 업로드 실패: {file_name} (status: {put_res.status_code})")
     return "https://via.placeholder.com/220?text=Upload+Error"
