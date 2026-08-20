@@ -36,7 +36,7 @@ TRACKING_BASE_URL = get_secret("TRACKING_BASE_URL", "")
 CLICK_LOG_BACKEND = get_secret("CLICK_LOG_BACKEND", "github")
 CLICK_LOG_PATH = get_secret("CLICK_LOG_PATH", "logs/click_logs.csv")
 MOCK_MODE = not OPENAI_API_KEY
-APP_VERSION = "2026-08-20-raw-pdf-links"
+APP_VERSION = "2026-08-20-instant-pdf-viewer-links"
  
 # 고정 리소스 및 배너 URL
 LOGO_URL = "https://lh3.googleusercontent.com/d/1WjzjlOOetztrcgq6rioAZxTzi_K-JwLl"
@@ -185,10 +185,11 @@ def handle_tracking_request():
     except Exception as e:
         st.warning(f"클릭 로그 저장 중 오류가 발생했습니다: {e}")
 
-    st.markdown("클릭을 기록했습니다. 잠시 후 원래 페이지로 이동합니다.")
-    st.markdown(f"[바로 이동하기]({target_url})")
     st.components.v1.html(
         f"""
+        <style>
+          body {{ margin: 0; background: #ffffff; }}
+        </style>
         <script>
           window.location.replace({json.dumps(target_url)});
         </script>
@@ -220,6 +221,8 @@ def upload_file_to_github(file_obj, patent_id, folder_name):
  
     if put_res.status_code in [200, 201]:
         user_id, repo_name = GH_REPO.split('/')
+        if folder_name == "pdfs":
+            return f"https://cdn.jsdelivr.net/gh/{user_id}/{repo_name}@main/{file_name}"
         return f"https://raw.githubusercontent.com/{user_id}/{repo_name}/main/{file_name}"
 
     st.warning(f"⚠️ 업로드 실패: {file_name} (status: {put_res.status_code})")
