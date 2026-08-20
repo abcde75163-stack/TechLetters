@@ -1,1 +1,14 @@
-
+[
+  {
+    "id": "10-2026-0086929",
+    "title": "자연어 기반의 3D 모델링 스크립트 기술",
+    "category": "기계",
+    "tags": ["건축", "게임 개발", "제조업"],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0086929.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0086929.pdf",
+    "problem": "복잡한 3D 모델링 작업에서 반복 설계와 수작업 입력이 많아 제작 시간이 길어집니다.",
+    "benefit": "자연어 지시만으로 모델링 스크립트를 생성해 설계 시간과 비용을 줄일 수 있습니다.",
+    "use_case": "건축 설계, 게임 콘텐츠 제작, 제조 시뮬레이션 등 3D 모델 생성이 필요한 분야에 적용 가능합니다.",
+    "recommendation": "시제품 제작 속도와 설계 자동화가 중요한 기업에 우선 제안할 수 있습니다."
+  }
+]
