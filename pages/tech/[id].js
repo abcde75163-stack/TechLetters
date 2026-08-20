@@ -1,4 +1,4 @@
-import technologies from "../../data/technologies.json";
+const DATA_URL = "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/data/technologies.json";
 
 export default function TechDetail({ tech }) {
   if (!tech) {
@@ -38,8 +38,8 @@ export default function TechDetail({ tech }) {
           <div style={styles.left}>
             <img src={tech.image_url} alt={tech.title} style={styles.image} />
 
-            <a href={trackUrl("smk_pdf", tech.pdf_url)} style={styles.primaryButton}>
-              기술요약서(SMK) 보기
+            <a href={trackUrl("smk_pdf", tech.pdf_url)} target="_blank" rel="noreferrer" style={styles.primaryButton}>
+              SMK PDF 새 창으로 열기
             </a>
           </div>
 
@@ -67,6 +67,16 @@ export default function TechDetail({ tech }) {
           </a>
         </div>
       </section>
+
+      <section style={styles.pdfSection}>
+        <div style={styles.pdfHeader}>
+          <h2 style={styles.pdfTitle}>기술요약서(SMK)</h2>
+          <a href={trackUrl("smk_pdf", tech.pdf_url)} target="_blank" rel="noreferrer" style={styles.smallButton}>
+            새 창으로 보기
+          </a>
+        </div>
+        <iframe src={tech.pdf_url} title={`${tech.title} SMK`} style={styles.pdfFrame} />
+      </section>
     </main>
   );
 }
@@ -80,31 +90,33 @@ function InfoRow({ label, text }) {
   );
 }
 
-export async function getStaticPaths() {
-  return {
-    paths: technologies.map((tech) => ({
-      params: { id: tech.id }
-    })),
-    fallback: "blocking"
-  };
-}
+export async function getServerSideProps({ params, res }) {
+  try {
+    const response = await fetch(`${DATA_URL}?t=${Date.now()}`, {
+      headers: { "Cache-Control": "no-cache" }
+    });
 
-export async function getStaticProps({ params }) {
-  const tech = technologies.find((item) => item.id === params.id) || null;
+    if (!response.ok) {
+      return { notFound: true };
+    }
 
-  if (!tech) {
+    const technologies = await response.json();
+    const tech = Array.isArray(technologies)
+      ? technologies.find((item) => item.id === params.id)
+      : null;
+
+    if (!tech) {
+      return { notFound: true };
+    }
+
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+
     return {
-      notFound: true,
-      revalidate: 60
+      props: { tech }
     };
+  } catch (error) {
+    return { notFound: true };
   }
-
-  return {
-    props: {
-      tech
-    },
-    revalidate: 60
-  };
 }
 
 const styles = {
@@ -117,7 +129,7 @@ const styles = {
   },
   card: {
     maxWidth: 860,
-    margin: "0 auto",
+    margin: "0 auto 22px",
     background: "#ffffff",
     border: "1px solid #c9dbf2",
     borderRadius: 8,
@@ -219,5 +231,42 @@ const styles = {
     borderRadius: 6,
     padding: "10px 14px",
     background: "#ffffff"
+  },
+  pdfSection: {
+    maxWidth: 860,
+    margin: "0 auto",
+    background: "#ffffff",
+    border: "1px solid #c9dbf2",
+    borderRadius: 8,
+    overflow: "hidden"
+  },
+  pdfHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    padding: "12px 16px",
+    borderBottom: "1px solid #d8e5f5"
+  },
+  pdfTitle: {
+    margin: 0,
+    fontSize: 18,
+    color: "#005bac"
+  },
+  smallButton: {
+    border: "1px solid #8fb9e8",
+    color: "#075da8",
+    textDecoration: "none",
+    fontWeight: 700,
+    borderRadius: 6,
+    padding: "8px 12px",
+    background: "#ffffff",
+    whiteSpace: "nowrap"
+  },
+  pdfFrame: {
+    width: "100%",
+    height: "780px",
+    border: 0,
+    display: "block"
   }
 };
