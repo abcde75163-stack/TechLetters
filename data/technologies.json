@@ -17,7 +17,7 @@
   },
   {
     "id": "10-2026-0119756",
-    "title": "근적외선 기술로 폐질환 진단 정밀도 향상",
+    "title": "폐 질환 진단 정확도를 높이는 1700nm 기술",
     "category": "보건의료",
     "tags": [
       "의료기기",
@@ -26,10 +26,10 @@
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0119756.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0119756.pdf",
-    "problem": "폐질환 진단의 정확성을 낮추는 기존 방식의 한계를 극복합니다.",
-    "benefit": "진단의 정확도를 높여 환자 관리와 비용 절감이 가능합니다.",
-    "use_case": "의료기기 및 진단 시스템에 광범위하게 적용될 수 있습니다.",
-    "recommendation": "고정밀 진단이 필요한 의료 기관에 우선 도입이 적합합니다."
+    "problem": "정확한 폐 질환 진단이 어려워 잘못된 치료로 이어질 수 있습니다.",
+    "benefit": "정밀 진단으로 치료 효율성을 극대화할 수 있습니다.",
+    "use_case": "의료기기와 호흡기 진단 기법에 활용될 수 있습니다.",
+    "recommendation": "정밀 진단 기술 도입을 고려하는 병원과 클리닉에 적합합니다."
   },
   {
     "id": "10-2026-0127160",
@@ -49,7 +49,7 @@
   },
   {
     "id": "10-2026-0127323",
-    "title": "첨단 광음향 이미징 기술로 진단 정확도 향상",
+    "title": "정밀 생체 이미징을 위한 고감도 다파장 기술",
     "category": "보건의료",
     "tags": [
       "의료기기",
@@ -58,42 +58,42 @@
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0127323.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0127323.pdf",
-    "problem": "의료 영상에서 발생할 수 있는 진단의 불확실성을 줄입니다.",
-    "benefit": "정확한 진단을 통해 의료 비용 절감과 환자 관리 효율을 높입니다.",
-    "use_case": "의료 영상 장비 및 진단 시스템에 적용 가능합니다.",
-    "recommendation": "진단 정확성을 요구하는 병원과 연구 개발 부서에 적합합니다."
+    "problem": "생체 조직의 세밀한 구조 분석이 어렵고 시간 소모가 큽니다.",
+    "benefit": "신속하고 정밀한 분석으로 연구개발 효율성을 높입니다.",
+    "use_case": "의학 연구 및 진단 분야의 생체 이미징 기술에 적용 가능합니다.",
+    "recommendation": "생체 이미징 기술을 활용하기 원하는 연구소나 제약회사에 적합합니다."
   },
   {
     "id": "10-2026-0140755",
-    "title": "기업의 청정 에너지 전환을 지원하는 그린수소 기술",
+    "title": "유기성 폐자원을 활용한 청정 바이오연료 기술",
     "category": "에너지자원",
     "tags": [
       "에너지자원",
-      "기계",
-      "환경"
+      "환경",
+      "농림수산식품"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0140755.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0140755.pdf",
-    "problem": "기존 화석 연료 의존도를 줄이고 탄소 배출을 감소시킵니다.",
-    "benefit": "청정 수소 생산으로 에너지 전환 비용을 절감하여 경쟁력을 높입니다.",
-    "use_case": "산업 공정, 청정 전력 생산, 수소 연료 전지 시스템에 적용할 수 있습니다.",
-    "recommendation": "지속 가능한 에너지 솔루션을 찾고 있는 기업에 제안합니다."
+    "problem": "유기성 폐자원의 처리 문제를 효과적으로 해결합니다.",
+    "benefit": "기술 도입으로 친환경 정책에 부합하며, 비용 절감 효과를 기대할 수 있습니다.",
+    "use_case": "바이오 연료, 폐기물 처리 및 에너지 생산 분야에 적용 가능합니다.",
+    "recommendation": "친환경 기획 및 에너지 혁신을 원하는 기업에 적합합니다."
   },
   {
     "id": "10-2026-0142746",
-    "title": "LoRa 통신의 잡음 제어로 데이터 신뢰성 강화",
+    "title": "IoT 통신 효율성을 높이는 LoRa 기술",
     "category": "정보통신",
     "tags": [
       "스마트팩토리",
-      "농림수산식품",
-      "전기전자"
+      "환경",
+      "정보통신"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0142746.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0142746.pdf",
-    "problem": "기업에서 통신 품질 저하로 인한 데이터 손실이 발생합니다.",
-    "benefit": "신뢰성 높은 데이터 전송으로 운영 효율성을 개선할 수 있습니다.",
-    "use_case": "스마트 팜, 산업 자동화, 드론 제어 등 다양한 분야에 적용 가능합니다.",
-    "recommendation": "데이터 전송 품질을 중시하는 기업에 적합합니다."
+    "problem": "비용 효율적이고 안정적인 IoT 통신이 어렵습니다.",
+    "benefit": "수신 범위를 넓혀 다양한 IoT 기기의 연속성을 보장합니다.",
+    "use_case": "스마트 시티, 농업 모니터링, 재난 대응 시스템에 활용 가능합니다.",
+    "recommendation": "IoT 솔루션을 찾는 기업과 부서에 적합합니다."
   },
   {
     "id": "10-2022-0038281",
@@ -334,5 +334,37 @@
     "benefit": "정확한 지중 탐지를 통해 잠재적 위험 요소를 조기에 파악할 수 있습니다.",
     "use_case": "교통 인프라, 건설 현장 및 도시 환경의 안전 점검에 활용 가능합니다.",
     "recommendation": "대형 인프라 프로젝트 관리 부서에 도입을 권장합니다."
+  },
+  {
+    "id": "10-2014-0046645",
+    "title": "6G 포락선 추적을 위한 성능 향상 기술",
+    "category": "정보통신",
+    "tags": [
+      "전기전자",
+      "정보통신",
+      "자동차부품"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2014-0046645.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2014-0046645.pdf",
+    "problem": "전통적인 RF 송신 기술의 한계를 극복하여 데이터 전송 품질을 개선합니다.",
+    "benefit": "통신 기업들이 더 높은 데이터 전송 속도와 안정성을 확보할 수 있습니다.",
+    "use_case": "차세대 이동통신 시스템과 자율주행차량 통신 기술에 활용 가능합니다.",
+    "recommendation": "통신 기술 혁신을 원하는 기업에 먼저 제안하는 것이 좋습니다."
+  },
+  {
+    "id": "10-2026-0166804",
+    "title": "정확한 위치 추적 성능을 제공하는 초음파 기술",
+    "category": "정보통신",
+    "tags": [
+      "물류",
+      "자동차",
+      "스마트팩토리"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0166804.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0166804.pdf",
+    "problem": "자동차 및 물류 산업에서의 정확한 위치 추적 문제를 해결합니다.",
+    "benefit": "정확한 위치 정보를 통해 물류 관리 효율성을 극대화합니다.",
+    "use_case": "물류 창고 자동화 및 자율주행 차량에 적용할 수 있습니다.",
+    "recommendation": "물류 및 제조업체의 자동화 시스템에 우선 도입을 권장합니다."
   }
 ]
