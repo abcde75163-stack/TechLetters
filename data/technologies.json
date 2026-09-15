@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "id": "10-2026-0086929",
     "title": "자연어 기반 3D 모델링 자동화 기술로 생산성 향상",
@@ -18,20 +18,20 @@
   },
   {
     "id": "10-2026-0119756",
-    "title": "폐 질환 진단 정확도를 높이는 1700nm 기술",
+    "title": "폐 질환 진단 정확도를 높이는 1700nm 편광 민감 기술",
     "category": "보건의료",
     "tags": [
       "의료기기",
       "보건의료",
-      "진단장비"
+      "기계"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0119756.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0119756.pdf",
-    "problem": "정확한 폐 질환 진단이 어려워 잘못된 치료로 이어질 수 있습니다.",
-    "benefit": "정밀 진단으로 치료 효율성을 극대화할 수 있습니다.",
-    "use_case": "의료기기와 호흡기 진단 기법에 활용될 수 있습니다.",
-    "recommendation": "정밀 진단 기술 도입을 고려하는 병원과 클리닉에 적합합니다.",
-    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/newsletter_20260915.pdf"
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 2주차 PNUTH 뉴스레터_외부.pdf",
+    "problem": "정확한 폐 질환 진단을 위한 기존 기술의 한계를 극복합니다.",
+    "benefit": "정밀한 진단을 통해 의료 비용과 시간이 절감됩니다.",
+    "use_case": "의료 영상 진단 및 폐 질환 관련 치료 분야에 적용 가능합니다.",
+    "recommendation": "정밀 진단 기능을 필요로 하는 의료기관에 적합합니다."
   },
   {
     "id": "10-2026-0127160",
@@ -52,54 +52,54 @@
   },
   {
     "id": "10-2026-0127323",
-    "title": "정밀 생체 이미징을 위한 고감도 다파장 기술",
+    "title": "다파장 유도 라만으로 실시간 생체 분석 기술",
     "category": "보건의료",
     "tags": [
       "의료기기",
-      "보건의료",
-      "바이오"
+      "생명과학",
+      "환경"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0127323.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0127323.pdf",
-    "problem": "생체 조직의 세밀한 구조 분석이 어렵고 시간 소모가 큽니다.",
-    "benefit": "신속하고 정밀한 분석으로 연구개발 효율성을 높입니다.",
-    "use_case": "의학 연구 및 진단 분야의 생체 이미징 기술에 적용 가능합니다.",
-    "recommendation": "생체 이미징 기술을 활용하기 원하는 연구소나 제약회사에 적합합니다.",
-    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/newsletter_20260915.pdf"
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 2주차 PNUTH 뉴스레터_외부.pdf",
+    "problem": "생체와 화학 분석의 실시간 데이터 수집을 위한 불편함을 해결합니다.",
+    "benefit": "인체 모니터링 정확도를 높여 검사 및 대처 시간을 단축합니다.",
+    "use_case": "의료, 생명과학, 환경 모니터링 등에서 활용 가능합니다.",
+    "recommendation": "생체 분석과 환경 검사에 종사하는 기관에 적합합니다."
   },
   {
     "id": "10-2026-0140755",
-    "title": "유기성 폐자원을 활용한 청정 바이오연료 기술",
+    "title": "폐기물 자원화를 통한 지속 가능한 그린수소 기술",
     "category": "에너지자원",
     "tags": [
       "에너지자원",
       "환경",
-      "농림수산식품"
+      "재료"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0140755.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0140755.pdf",
-    "problem": "유기성 폐자원의 처리 문제를 효과적으로 해결합니다.",
-    "benefit": "기술 도입으로 친환경 정책에 부합하며, 비용 절감 효과를 기대할 수 있습니다.",
-    "use_case": "바이오 연료, 폐기물 처리 및 에너지 생산 분야에 적용 가능합니다.",
-    "recommendation": "친환경 기획 및 에너지 혁신을 원하는 기업에 적합합니다.",
-    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/newsletter_20260915.pdf"
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 2주차 PNUTH 뉴스레터_외부.pdf",
+    "problem": "폐기물에서 수소를 생산하는 과정을 효율적으로 관리합니다.",
+    "benefit": "기업의 지속 가능성을 높이며, 친환경 에너지원으로 전환을 촉진합니다.",
+    "use_case": "수소 연료 전지, 재생에너지 시스템 및 폐기물 관리 분야에 적용 가능합니다.",
+    "recommendation": "지속 가능한 경영을 추구하는 에너지 및 환경 관련 기업에 적합합니다."
   },
   {
     "id": "10-2026-0142746",
-    "title": "IoT 통신 효율성을 높이는 LoRa 기술",
+    "title": "IoT 환경에서 통신 신뢰성을 높이는 LoRa 기술",
     "category": "정보통신",
     "tags": [
       "스마트팩토리",
-      "환경",
+      "농림수산식품",
       "정보통신"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0142746.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0142746.pdf",
-    "problem": "비용 효율적이고 안정적인 IoT 통신이 어렵습니다.",
-    "benefit": "수신 범위를 넓혀 다양한 IoT 기기의 연속성을 보장합니다.",
-    "use_case": "스마트 시티, 농업 모니터링, 재난 대응 시스템에 활용 가능합니다.",
-    "recommendation": "IoT 솔루션을 찾는 기업과 부서에 적합합니다.",
-    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/newsletter_20260915.pdf"
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 2주차 PNUTH 뉴스레터_외부.pdf",
+    "problem": "이 기술은 불안정한 IoT 통신 환경에서의 데이터 손실 문제를 해결합니다.",
+    "benefit": "도입 기업은 통신 안정성을 개선하여 운영 효율성을 극대화할 수 있습니다.",
+    "use_case": "스마트시티, 농업, 재난 관리 등 다양한 IoT 서비스에 적용 가능합니다.",
+    "recommendation": "IoT 활용을 극대화하려는 기업에 우선적으로 제안합니다."
   },
   {
     "id": "10-2022-0038281",
@@ -358,36 +358,36 @@
   },
   {
     "id": "10-2014-0046645",
-    "title": "6G 포락선 추적을 위한 성능 향상 기술",
-    "category": "정보통신",
+    "title": "6G 기반 고속 포지셔닝 정확도 향상 기술",
+    "category": "전기전자",
     "tags": [
-      "전기전자",
-      "정보통신",
-      "자동차부품"
+      "자동차부품",
+      "드론",
+      "통신기기"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2014-0046645.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2014-0046645.pdf",
-    "problem": "전통적인 RF 송신 기술의 한계를 극복하여 데이터 전송 품질을 개선합니다.",
-    "benefit": "통신 기업들이 더 높은 데이터 전송 속도와 안정성을 확보할 수 있습니다.",
-    "use_case": "차세대 이동통신 시스템과 자율주행차량 통신 기술에 활용 가능합니다.",
-    "recommendation": "통신 기술 혁신을 원하는 기업에 먼저 제안하는 것이 좋습니다.",
-    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/newsletter_20260915.pdf"
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 2주차 PNUTH 뉴스레터_외부.pdf",
+    "problem": "정확한 위치 정보를 요구하는 산업 현장에서의 타당성 문제를 해결합니다.",
+    "benefit": "정밀한 위치 확인으로 안전성과 효율성을 동시에 증대시킵니다.",
+    "use_case": "자동차, 드론, 통신 기기 등 다양한 분야에 응용 가능합니다.",
+    "recommendation": "안전성과 품질 향상이 필요한 자동차 및 드론 기업에 적합합니다."
   },
   {
     "id": "10-2026-0166804",
-    "title": "정확한 위치 추적 성능을 제공하는 초음파 기술",
+    "title": "정밀 위치 추적과 도착 시간을 개선하는 초음파 기술",
     "category": "정보통신",
     "tags": [
-      "물류",
-      "자동차",
-      "스마트팩토리"
+      "자동차부품",
+      "스마트팩토리",
+      "물류"
     ],
     "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0166804.png",
     "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0166804.pdf",
-    "problem": "자동차 및 물류 산업에서의 정확한 위치 추적 문제를 해결합니다.",
-    "benefit": "정확한 위치 정보를 통해 물류 관리 효율성을 극대화합니다.",
-    "use_case": "물류 창고 자동화 및 자율주행 차량에 적용할 수 있습니다.",
-    "recommendation": "물류 및 제조업체의 자동화 시스템에 우선 도입을 권장합니다.",
-    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/newsletter_20260915.pdf"
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 2주차 PNUTH 뉴스레터_외부.pdf",
+    "problem": "물류 분야에서 정확한 위치 추적과 시간 관리의 필요성을 해결합니다.",
+    "benefit": "기업의 물류 효율성을 향상시키고 운영 비용을 절감합니다.",
+    "use_case": "자동차, 물류 창고, 스마트 공장 등 여러 분야에 적용 가능합니다.",
+    "recommendation": "물류 센터와 자동화 시스템을 도입한 기업에 특히 적합합니다."
   }
 ]
