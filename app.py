@@ -201,21 +201,19 @@ def handle_tracking_request():
     )
     return True
  
-def upload_file_to_github(file_obj, patent_id, folder_name):
+def upload_named_file_to_github(file_obj, file_name):
     if not GH_TOKEN or not GH_REPO:
         st.warning("GitHub 업로드 설정이 없어 외부 링크를 생성하지 못했습니다. `GITHUB_TOKEN`, `GITHUB_REPO`를 설정하세요.")
         return "https://via.placeholder.com/220?text=GitHub+Not+Configured"
 
     file_content = file_obj.getvalue()
-    ext = file_obj.name.split('.')[-1].lower() if hasattr(file_obj, 'name') else 'png'
-    file_name = f"{folder_name}/{patent_id}.{ext}"
     url = f"https://api.github.com/repos/{GH_REPO}/contents/{file_name}"
  
     headers = {"Authorization": f"token {GH_TOKEN}", "Accept": "application/vnd.github.v3+json"}
     res = requests.get(url, headers=headers)
     sha = res.json().get('sha') if res.status_code == 200 else None
  
-    payload = {"message": f"Update {folder_name}: {patent_id}", "content": base64.b64encode(file_content).decode("utf-8")}
+    payload = {"message": f"Update file: {file_name}", "content": base64.b64encode(file_content).decode("utf-8")}
     if sha:
         payload["sha"] = sha
  
@@ -223,12 +221,17 @@ def upload_file_to_github(file_obj, patent_id, folder_name):
  
     if put_res.status_code in [200, 201]:
         user_id, repo_name = GH_REPO.split('/')
-        if folder_name == "pdfs":
+        if file_name.startswith("pdfs/"):
             return f"https://cdn.jsdelivr.net/gh/{user_id}/{repo_name}@main/{file_name}"
         return f"https://raw.githubusercontent.com/{user_id}/{repo_name}/main/{file_name}"
 
     st.warning(f"⚠️ 업로드 실패: {file_name} (status: {put_res.status_code})")
     return "https://via.placeholder.com/220?text=Upload+Error"
+
+
+def upload_file_to_github(file_obj, patent_id, folder_name):
+    ext = file_obj.name.split('.')[-1].lower() if hasattr(file_obj, 'name') else 'png'
+    return upload_named_file_to_github(file_obj, f"{folder_name}/{patent_id}.{ext}")
 
 
 def strip_summary_prefix(text):
@@ -292,6 +295,7 @@ def build_technology_records(patent_list):
             "tags": tags[:3],
             "image_url": patent.get("image_url", ""),
             "pdf_url": patent.get("smk_url", "#"),
+            "newsletter_pdf_url": patent.get("newsletter_pdf_url", ""),
             "problem": str(problem).strip(),
             "benefit": str(benefit).strip(),
             "use_case": str(use_case).strip(),
@@ -941,6 +945,13 @@ html_template_str = """<!DOCTYPE html>
   <tr>
     <td align="center" style="padding:15px 10px 10px 10px;">
       <table width="100%" cellpadding="0" cellspacing="0">
+        {% if newsletter_url %}
+        <tr>
+          <td align="center" style="padding-bottom:12px;">
+            <a class="cta-button" href="{{ newsletter_url }}" target="_blank" style="display:inline-block; width:400px; background-color:#005BAC; color:#ffffff; text-decoration:none; padding:15px 0; border-radius:8px; font-weight:bold; font-size:16px; text-align:center;">&#128196; 부산대학교기술지주 뉴스레터</a>
+          </td>
+        </tr>
+        {% endif %}
         <tr>
           <td align="center" style="padding-bottom:12px;">
             <a class="cta-button" href="{{ consult_url }}" style="display:inline-block; width:400px; background-color:#ffffff; color:#005BAC; text-decoration:none; padding:15px 0; border-radius:8px; font-weight:bold; border:2px solid #005BAC; font-size:16px; text-align:center;">&#128161; 수요기술 상담신청</a>
@@ -978,18 +989,20 @@ def main():
 
     st.title(f"🚀 PNUTH 뉴스레터 자동 생성기 [{APP_VERSION}]")
     st.caption(f"현재 실행 중인 앱 버전: {APP_VERSION}")
-    st.info("PDF와 이미지 파일을 함께 업로드하세요. (파일명 번호 일치 필수)")
+    st.info("SMK PDF, 특허 이미지, 뉴스레터 PDF를 함께 업로드하세요. (SMK와 이미지는 파일명 번호 일치 필수)")
     if MOCK_MODE:
         st.warning("OPENAI_API_KEY가 없어 MOCK 모드로 동작합니다. 실제 PDF 분석 대신 테스트 요약이 사용됩니다.")
  
     is_test_mode = st.checkbox("🧪 테스트 모드 켜기 (체크 시 API 요금이 나가지 않으며 초고속으로 레이아웃만 확인합니다.)")
     effective_test_mode = is_test_mode or MOCK_MODE
  
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         pdf_files = st.file_uploader("1. SMK PDF들", type="pdf", accept_multiple_files=True)
     with col2:
         img_files = st.file_uploader("2. 특허 이미지들", type=["png", "jpg"], accept_multiple_files=True)
+    with col3:
+        newsletter_pdf_file = st.file_uploader("3. 뉴스레터 PDF", type="pdf", accept_multiple_files=False)
  
     if pdf_files:
         if st.button("뉴스레터 생성 시작"):
@@ -997,6 +1010,19 @@ def main():
             patent_list = []
             status_text = st.empty()
             progress_bar = st.progress(0)
+            now = datetime.datetime.now()
+            campaign_id = f"{DEFAULT_CAMPAIGN_PREFIX}_{now.strftime('%Y%m%d')}"
+            newsletter_pdf_url = ""
+
+            if newsletter_pdf_file is not None:
+                if effective_test_mode:
+                    newsletter_pdf_url = "#"
+                else:
+                    newsletter_pdf_name = os.path.basename(newsletter_pdf_file.name)
+                    newsletter_pdf_url = upload_named_file_to_github(
+                        newsletter_pdf_file,
+                        f"pdfs/{newsletter_pdf_name}",
+                    )
  
             for idx, uploaded_file in enumerate(pdf_files):
                 patent_id = upload_key(uploaded_file).split('_')[0]
@@ -1034,6 +1060,8 @@ def main():
                     else:
                         data['image_url'] = "https://via.placeholder.com/200x180?text=No+Image"
                     data['smk_url'] = upload_file_to_github(uploaded_file, patent_id, "pdfs")
+
+                data['newsletter_pdf_url'] = newsletter_pdf_url
  
                 patent_list.append(data)
                 progress_bar.progress((idx + 1) / len(pdf_files))
@@ -1070,9 +1098,7 @@ def main():
                     st.warning("data/technologies.json 업데이트에 실패했습니다. GitHub 토큰 권한을 확인하세요.")
  
             grouped_patents = group_patents_by_category(patent_list)
-            now = datetime.datetime.now()
             week_str = f"{now.year}년 {now.month}월 {get_week_of_month(now)}주차"
-            campaign_id = f"{DEFAULT_CAMPAIGN_PREFIX}_{now.strftime('%Y%m%d')}"
             for patent in patent_list:
                 patent_id = patent.get("patent_id", "")
                 category = patent.get("category", "")
@@ -1116,6 +1142,13 @@ def main():
                     utm_medium="email",
                     utm_campaign=campaign_id,
                     link_type="pr",
+                ),
+                newsletter_url=with_tracking(
+                    newsletter_pdf_url,
+                    utm_source="newsletter",
+                    utm_medium="email",
+                    utm_campaign=campaign_id,
+                    link_type="newsletter_pdf",
                 )
             )
  
