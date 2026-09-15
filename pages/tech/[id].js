@@ -53,6 +53,15 @@ export default function TechDetail({ tech }) {
 
         <div style={styles.footerButtons}>
           <a
+            href={trackUrl("newsletter_pdf", "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/pdfs/newsletter_20260915.pdf")}
+            target="_blank"
+            rel="noreferrer"
+            style={styles.secondaryButton}
+          >
+            부산대학교기술지주 뉴스레터
+          </a>
+
+          <a
             href={trackUrl("consult", "https://clever-designers-959477.framer.app/pium-%EA%B8%B0%EC%88%A0%EC%82%AC%EC%97%85%ED%99%94-%EC%84%BC%ED%84%B0-%EC%88%98%EC%9A%94%EA%B8%B0%EC%88%A0-%EC%A0%91%EC%88%98-%ED%8E%98%EC%9D%B4%EC%A7%80")}
             style={styles.secondaryButton}
           >
