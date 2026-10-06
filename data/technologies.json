@@ -389,5 +389,124 @@
     "benefit": "기업의 물류 효율성을 향상시키고 운영 비용을 절감합니다.",
     "use_case": "자동차, 물류 창고, 스마트 공장 등 여러 분야에 적용 가능합니다.",
     "recommendation": "물류 센터와 자동화 시스템을 도입한 기업에 특히 적합합니다."
+  },
+  {
+    "id": "10-2026-0005512",
+    "title": "스펙트럼 기반 보안 강화 기술",
+    "category": "정보통신",
+    "tags": [
+      "스마트팩토리",
+      "자동차부품",
+      "정보통신"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0005512.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0005512.pdf",
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 4주차~10월 1주차 PNUTH 뉴스레터.pdf",
+    "problem": "IoT 기기에서 발생하는 보안 취약점을 해결합니다.",
+    "benefit": "안전한 데이터 전송으로 기업의 신뢰성을 개선합니다.",
+    "use_case": "스마트홈, 자동차, 산업 IoT 보안 시스템에 적용 가능합니다.",
+    "recommendation": "시스템 보안 강화를 원하는 IoT 기업에 우선 제안합니다."
+  },
+  {
+    "id": "10-2026-0114566",
+    "title": "암모니아 혼소를 통한 배기가스 재순환 기술",
+    "category": "화공",
+    "tags": [
+      "화공",
+      "에너지자원",
+      "환경"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0114566.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0114566.pdf",
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 4주차~10월 1주차 PNUTH 뉴스레터.pdf",
+    "problem": "배기가스 배출로 인한 환경 오염 문제를 해결합니다.",
+    "benefit": "재순환 기술로 운영 비용 절감과 탄소 중립을 달성할 수 있습니다.",
+    "use_case": "화력발전소 및 산업 공정에서 활용 가능한 기술입니다.",
+    "recommendation": "친환경 원료 전환을 고려하는 에너지 기업에 적합합니다."
+  },
+  {
+    "id": "10-2026-0115526",
+    "title": "신축성이 우수한 유기 전자기기 기술",
+    "category": "전기전자",
+    "tags": [
+      "스마트팩토리",
+      "헬스케어",
+      "전기전자"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0115526.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0115526.pdf",
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 4주차~10월 1주차 PNUTH 뉴스레터.pdf",
+    "problem": "기존 전자기기의 강직성으로 인한 착용감 문제를 해결합니다.",
+    "benefit": "사용자가 편안하게 착용할 수 있는 웨어러블 기기를 제공합니다.",
+    "use_case": "스마트 헬스케어 및 웨어러블 기술에 적용할 수 있습니다.",
+    "recommendation": "착용감을 개선하고자 하는 헬스케어 기업에 적합합니다."
+  },
+  {
+    "id": "10-2026-0124195",
+    "title": "각막염 진단 정확도를 높이는 BHI 배지 기술",
+    "category": "보건의료",
+    "tags": [
+      "의료기기",
+      "보건의료",
+      "생명과학"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0124195.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0124195.pdf",
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 4주차~10월 1주차 PNUTH 뉴스레터.pdf",
+    "problem": "각막염 진단 시 미생물 검출의 정확성과 신속성이 부족합니다.",
+    "benefit": "도입 기업은 정확한 진단을 통해 환자 치료 시간을 단축할 수 있습니다.",
+    "use_case": "의료기기 및 병원 검체 검사에서 활용 가능합니다.",
+    "recommendation": "정확한 진단 솔루션을 필요로 하는 안과 의료기관에 적합합니다."
+  },
+  {
+    "id": "10-2026-0130192",
+    "title": "정밀 농작물 유전자 분석을 통한 육종 효율 향상 기술",
+    "category": "농림수산식품",
+    "tags": [
+      "농림수산식품",
+      "기계",
+      "보건의료"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0130192.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0130192.pdf",
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 4주차~10월 1주차 PNUTH 뉴스레터.pdf",
+    "problem": "농작물 육종 과정의 정확성과 속도가 저조한 문제를 해결합니다.",
+    "benefit": "정확한 유전자 정보로 육종 비용을 절감하고 생산성을 향상시킵니다.",
+    "use_case": "농업 및 식물 생명공학 분야의 유전자 분석 및 육종에서 활용 가능합니다.",
+    "recommendation": "농업 연구소 및 육종 업체의 기술 혁신을 위해 권장합니다."
+  },
+  {
+    "id": "10-2026-0159878",
+    "title": "전기화학 기반 효율적 선택 산화 기술",
+    "category": "화공",
+    "tags": [
+      "화공",
+      "환경",
+      "기계"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0159878.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0159878.pdf",
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 4주차~10월 1주차 PNUTH 뉴스레터.pdf",
+    "problem": "산업 공정에서 에너지 소모를 줄이는 환경적 문제를 해결합니다.",
+    "benefit": "도입 기업은 생산 비용 절감을 통한 경쟁력을 강화할 수 있습니다.",
+    "use_case": "화학 공정, 환경 정화, 수처리 시스템에 적용 가능합니다.",
+    "recommendation": "에너지 효율을 추구하는 화학 기업에 적합합니다."
+  },
+  {
+    "id": "10-2026-0171469",
+    "title": "폴리우레탄의 열 경화 속도를 높이는 기술",
+    "category": "재료",
+    "tags": [
+      "자동차부품",
+      "건축",
+      "화공"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0171469.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0171469.pdf",
+    "newsletter_pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/2026년 9월 4주차~10월 1주차 PNUTH 뉴스레터.pdf",
+    "problem": "현재 폴리우레탄의 경화 과정이 느리고 비효율적입니다.",
+    "benefit": "제품 생산 시간을 단축하고 생산성을 높일 수 있습니다.",
+    "use_case": "자동차, 건축, 산업용 제품의 폴리우레탄 코팅에 적용 가능합니다.",
+    "recommendation": "생산성 향상을 원하는 제조업체에 즉시 적용하는 것이 효과적입니다."
   }
 ]
