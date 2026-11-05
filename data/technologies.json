@@ -508,5 +508,89 @@
     "benefit": "제품 생산 시간을 단축하고 생산성을 높일 수 있습니다.",
     "use_case": "자동차, 건축, 산업용 제품의 폴리우레탄 코팅에 적용 가능합니다.",
     "recommendation": "생산성 향상을 원하는 제조업체에 즉시 적용하는 것이 효과적입니다."
+  },
+  {
+    "id": "10-2026-0166595",
+    "title": "비가시성 센서 융합 기술로 안전한 자율주행 실현",
+    "category": "기계",
+    "tags": [
+      "자동차부품",
+      "스마트팩토리",
+      "기계"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0166595.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0166595.pdf",
+    "newsletter_pdf_url": "",
+    "problem": "자율주행 차량의 안전성을 확보하기 위한 센서 통합의 어려움을 해결합니다.",
+    "benefit": "정확한 환경 인식을 통해 고객의 안전성을 높이고 사고를 줄입니다.",
+    "use_case": "스마트 시티를 포함한 자율주행차량과 관련 시스템에 적용 가능합니다.",
+    "recommendation": "자율주행 기술을 개발 중인 자동차업체 및 연구기관에 추천합니다."
+  },
+  {
+    "id": "10-2026-0155057",
+    "title": "PFAS 제거를 위한 3D 프린팅 카본 블랙 기술",
+    "category": "환경",
+    "tags": [
+      "환경",
+      "수처리",
+      "소각정화"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0155057.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0155057.pdf",
+    "newsletter_pdf_url": "",
+    "problem": "전통적인 수처리 방식으로 PFAS 처리가 어렵습니다.",
+    "benefit": "위험 물질 제거를 통해 수처리 비용을 절감할 수 있습니다.",
+    "use_case": "수처리, 환경 복원 및 정수 시설에 적용 가능합니다.",
+    "recommendation": "공공수도 및 환경 관리 업체에 우선 제안하면 좋습니다."
+  },
+  {
+    "id": "10-2026-0160154",
+    "title": "생물리념형 광합성 제품 생산 기술",
+    "category": "환경",
+    "tags": [
+      "수산업",
+      "바이오연료",
+      "환경"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0160154.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0160154.pdf",
+    "newsletter_pdf_url": "",
+    "problem": "고비용 및 불균형적인 광합성 생산 문제를 해결합니다.",
+    "benefit": "효율적인 에너지 사용으로 생산 비용 절감 효과를 봅니다.",
+    "use_case": "수산업 및 바이오연료 생산에 광범위하게 적용 가능합니다.",
+    "recommendation": "수산물 생산 및 친환경 에너지 기업에 적합합니다."
+  },
+  {
+    "id": "10-2026-0171575",
+    "title": "식품 안전성을 높이는 비드센서 기술",
+    "category": "환경",
+    "tags": [
+      "식품바이오",
+      "농림수산식품"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0171575.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0171575.pdf",
+    "newsletter_pdf_url": "",
+    "problem": "식품의 오염 및 변질을 신속하게 검출하는 데 어려움이 있습니다.",
+    "benefit": "비용을 줄이고 품질 보증을 강화하여 고객 신뢰를 높입니다.",
+    "use_case": "식품 가공 및 유통 과정에서 안전성 검증에 활용됩니다.",
+    "recommendation": "품질 관리 부서와 식품 관련 기업에 우선 제안합니다."
+  },
+  {
+    "id": "10-2026-0164389",
+    "title": "자동화 정밀 가공을 위한 광섬유 레이저 기술",
+    "category": "기계",
+    "tags": [
+      "자동차부품",
+      "전자기기",
+      "의료기기"
+    ],
+    "image_url": "https://raw.githubusercontent.com/abcde75163-stack/TechLetters/main/images/10-2026-0164389.png",
+    "pdf_url": "https://cdn.jsdelivr.net/gh/abcde75163-stack/TechLetters@main/pdfs/10-2026-0164389.pdf",
+    "newsletter_pdf_url": "",
+    "problem": "정밀 가공에서의 비효율적인 수작업 과정을 해결합니다.",
+    "benefit": "생산 공정의 신뢰성을 높여 불량률을 감소시킵니다.",
+    "use_case": "자동차, 전자기기, 의료기기 가공에 활용할 수 있습니다.",
+    "recommendation": "정밀 생산 공정 개선이 필요한 제조업체에 적합합니다."
   }
 ]
